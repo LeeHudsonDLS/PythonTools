@@ -56,7 +56,7 @@ for index, arg in enumerate(databaseFiles):
                 recordlist.append(recordString)
                 recordString = ""
                 inRecord = False 
-        if "record(" in x:
+        if "record(" in x and "#" not in x:
             for key in recordInstances.keys():
                 if key + "," in x:
                     recordInstances[key]+=1
