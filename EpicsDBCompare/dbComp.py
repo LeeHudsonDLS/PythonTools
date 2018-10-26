@@ -40,7 +40,8 @@ localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
 databaseFiles = list()
 for x in localFiles:
     if os.path.splitext(x)[1] == ".db" or os.path.splitext(x)[1] == ".template" or os.path.splitext(x)[1] == ".vdb":
-        databaseFiles.append(x)
+        if x.split("-")[2] != "SIM":
+            databaseFiles.append(x)
 
 print databaseFiles
 
