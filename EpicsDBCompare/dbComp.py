@@ -4,6 +4,7 @@ import os
 
   
 inRecord = False
+blGui = False
 recordlist = list()
 recordString = ""
 noOfRecords = 0
@@ -36,6 +37,8 @@ recordInstances = {
                     'waveform':0,
 }
 
+blGuiRecordPrefix = [':MTYPE',':NCURR',':NFLOW',':NTEMP',':DEVSTA',':MOTORSTA',':CURRSTA',':FLOWSTA','TEMPSTA']
+
 localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
 databaseFiles = list()
 for x in localFiles:
@@ -58,12 +61,17 @@ for index, arg in enumerate(databaseFiles):
                 recordString = ""
                 inRecord = False 
         if "record(" in x and "#" not in x:
-            for key in recordInstances.keys():
-                if key + "," in x:
-                    recordInstances[key]+=1
-            recordString += x
-            noOfRecords += 1
-            inRecord = True
+            blGui = False
+            for y in blGuiRecordPrefix:
+                if y in x:
+                    blGui = True
+            if blGui == False:
+                for key in recordInstances.keys():
+                    if key + "," in x:
+                        recordInstances[key]+=1
+                recordString += x
+                noOfRecords += 1
+                inRecord = True
 
 recordlist.sort()
 
