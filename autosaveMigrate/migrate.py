@@ -52,6 +52,18 @@ os.chdir(sys.argv[1])
 # the IOC name, so BL04I_0.sav0 is copied to BL04I-MO-IOC-01_0.sav0
 for extension in fileExtensions:
     for file in glob.glob(extension):
+        if IOC in file:
+            # Check if the migration has already been performed
+            print file + " already exists"
+            quit()
+        originalFile.append(file)
+
+
+if len(originalFile) != 15:
+    print "Not correct amount of original files"
+    quit()
+
+for file in originalFile:
         copyfile(file,file.replace(file[:5],IOC))
 
 
