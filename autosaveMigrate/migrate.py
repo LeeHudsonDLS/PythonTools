@@ -26,15 +26,15 @@ argument = sys.argv[1].split('/')
 # Check the splitted argument looks like an autosave path
 if argument[1] != "dls_sw":
     print "Invalid autosave path"
-    #quit()
+    quit()
 
 if argument[3] != "epics":
     print "Invalid autosave path"
-    #quit()
+    quit()
     
 if argument[4] != "autosave":
     print "Invalid autosave path"
-    #quit()
+    quit()
 
 # Find the part of the argument that specifies IOC name
 for a in argument:
