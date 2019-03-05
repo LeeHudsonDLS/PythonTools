@@ -12,8 +12,10 @@ class simpleBackup(object):
         self.port = 1
         self.pti = None
         self.debug = False
+        self.ivarRaw = ''
+        self.iVariables = []
         self.setComms()
-        self.sendCommand("i103")
+        self.ivarDump()
 
     def setComms(self):
         self.host = sys.argv[1]
@@ -30,7 +32,12 @@ class simpleBackup(object):
         (returnStr, status) = self.pti.sendCommand(text)
         if self.debug:
             print '%s --> %s' % (repr(text), repr(returnStr))
-        return (returnStr, status)
+        return (returnStr)
+    
+    def ivarDump(self):
+        self.ivarRaw = self.sendCommand("i0,81,1")
+        self.iVariables = self.ivarRaw.splitlines()
+        print self.iVariables
 
 
 def main():
