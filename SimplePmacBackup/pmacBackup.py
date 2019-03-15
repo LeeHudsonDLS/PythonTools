@@ -10,6 +10,58 @@ class simpleBackup(object):
     def __init__(self):
         self.host = ''
         self.port = 1
+        self.globalIVariableDescriptions = {0:'Serial card number', 1:'Serial card mode',
+        2:'Control panel port activation', 3:'I/O handshake control',
+        4:'Communications integrity mode', 5:'PLC program control',
+        6:'Error reporting mode', 7:'Phase cycle extension',
+        8:'Real-time interrupt period', 9:'Full/abbreviated listing control',
+        10:'Servo interrupt time', 11:'Programmed move calculation time',
+        12:'Lookahead spline time', 13:'Foreground in-position check enable',
+        14:'Temporary buffer save enable', 15:'Degree/radian control for user trig functions',
+        16:'Rotary buffer request on point', 17:'Rotary buffer request off point',
+        18:'Fixed buffer full warning point', 19:'Clock source I-variable number',
+        20:'Macro IC 0 base address', 21:'Macro IC 1 base address',
+        22:'Macro IC 2 base address', 23:'Macro IC 3 base address',
+        24:'Main DPRAM base address', 25:'Reserved', 26:'Reserved', 27:'Reserved',
+        28:'Reserved', 29:'Reserved', 30:'Compensation table wrap enable',
+        31:'Reserved', 32:'Reserved', 33:'Reserved', 34:'Reserved', 35:'Reserved',
+        36:'Reserved', 37:'Additional wait states', 38:'Reserved',
+        39:'UBUS accessory ID variable display control', 40:'Watchdog timer reset value',
+        41:'I-variable lockout control', 42:'Spline/PVT time control mode',
+        43:'Auxiliary serial port parser disable', 44:'PMAC ladder program enable',
+        45:'Foreground binary rotary buffer transfer enable',
+        46:'P&Q-variable storage location',
+        47:'DPRAM motor data foreground reporting period',
+        48:'DPRAM motor data foreground reporting enable',
+        49:'DPRAM background data reporting enable', 50:'DPRAM background data reporting period',
+        51:'Compensation table enable', 52:'CPU frequency control',
+        53:'Auxiliary serial port baud rate control',
+        54:'Serial port baud rate control',
+        55:'DPRAM background variable buffers enable',
+        56:'DPRAM ASCII communications interrupt enable',
+        57:'DPRAM motor data background reporting enable',
+        58:'DPRAM ASCII communications enable', 59:'Motor/CS group select',
+        60:'Filtered velocity sample time', 61:'Filtered velocity shift',
+        62:'Internal message carriage return control', 63:'Control-X echo enable',
+        64:'Internal response tag enable', 65:'Reserved', 66:'Reserved', 67:'Reserved',
+        68:'Coordinate system activation control', 69:'Reserved',
+        70:'Macro IC 0 node auxiliary register enable', 71:'Macro IC 0 node protocol type control',
+        72:'Macro IC 1 node auxiliary register enable', 73:'Macro IC 1 node protocol type control',
+        74:'Macro IC 2 node auxiliary register enable', 75:'Macro IC 2 node protocol type control',
+        76:'Macro IC 3 node auxiliary register enable', 77:'Macro IC 3 node protocol type control',
+        78:'Macro type 1 master/slave communications timeout',
+        79:'Macro type 1 master/master communications timeout',
+        80:'Macro ring check period', 81:'Macro maximum ring error count',
+        82:'Macro minimum sync packet count', 83:'Macro parallel ring enable mask',
+        84:'Macro IC# for master communications', 85:'Macro ring order number',
+        86:'Reserved', 87:'Reserved', 88:'Reserved', 89:'Reserved',
+        90:'VME address modifier', 91:'VME address modifier don\'t care bits',
+        92:'VME base address bits A31-A24',
+        93:'VME mailbox base address bits A23-A16 ISA DPRAM base address bits A23-A16',
+        94:'VME mailbox base address bits A15-A08 ISA DPRAM base address bits A15-A14 & control',
+        95:'VME interrupt level', 96:'VME interrupt vector',
+        97:'VME DPRAM base address bits A23-A20', 98:'VME DPRAM enable',
+        99:'VME address width control'}
         self.motorIVariableDescriptions = {0:'Activation control', 1:'Commutation enable',
         2:'Command output address', 3:'Position loop feedback address',
         4:'Velocity loop feedback address', 5:'Master position address',
@@ -54,8 +106,12 @@ class simpleBackup(object):
         95:'Power-on servo position format', 96:'Command output mode control',
         97:'Position capture & trigger mode', 98:'Third resolver gear ratio',
         99:'Second resolver gear ratio'}
-        
-        print self.motorIVariableDescriptions[0]
+        self.motorI7000VariableDescriptions = {0:'Encoder/timer decode control',
+        1:'Position compare channel select', 2:'Encoder capture control',
+        3:'Capture flag select control', 4:'Encoder gated index select',
+        5:'Encoder index gate state', 6:'Output mode select',
+        7:'Output invert control', 8:'Output PFM direction signal invert control',
+        9:'Hardware 1/T control'}
         self.pti = None
         self.debug = False
         self.ivarRaw = ''
@@ -63,6 +119,8 @@ class simpleBackup(object):
         self.setComms()
         self.ivarDump()
         self.makeAxisPMC()
+        self.makeEctPMC()
+        self.makeControlPMC()
 
     def setComms(self):
         self.host = sys.argv[1]
@@ -98,6 +156,7 @@ class simpleBackup(object):
     
     def makeAxisPMC(self):
         with open('Axis.pmc','w') as f: 
+            f.write(str(datetime.date.today())+"\r")
             for axis in range(1,9):
                 f.write("\r;-------Axis " + str(axis) + "------:\r")
                 for index, val in enumerate(self.iVariables):
@@ -106,10 +165,30 @@ class simpleBackup(object):
                         f.write('{: <24}{: <1}'.format("I" + str(index) + "=" + val,";"+self.motorIVariableDescriptions[index-(axis*100)]+"\r"))
                     if axis < 5:
                         if index >= 7000+(axis*10) and index < 7000+((axis+1)*10):
-                            f.write("I" + str(index) + "=" + val + "\r")
+                            f.write('{: <24}{: <1}'.format("I" + str(index) + "=" + val,";"+self.motorI7000VariableDescriptions[index - (7000+(axis*10))]+"\r"))                
                     else:
                         if index >= 7100+((axis-4)*10) and index < 7100+((axis-3)*10):
-                            f.write("I" + str(index) + "=" + val + "\r")
+                            f.write('{: <24}{: <1}'.format("I" + str(index) + "=" + val,";"+self.motorI7000VariableDescriptions[index - (7100+((axis-4)*10))]+"\r"))
+
+    def makeEctPMC(self):
+        with open('ECT.pmc','w') as f: 
+            f.write(str(datetime.date.today())+"\r")
+            for index, val in enumerate(self.iVariables):
+                if index in range(8000,8140):
+                    f.write("I" + str(index) + "=" + val+"\r")
+
+    def makeControlPMC(self):
+        with open('Control.pmc','w') as f: 
+            f.write(str(datetime.date.today())+"\r")
+            for index, val in enumerate(self.iVariables):
+                if index in range(100):
+                    f.write('{: <24}{: <1}'.format("I" + str(index) + "=" + val,";"+self.globalIVariableDescriptions[index]+"\r"))
+
+
+
+                    
+                    
+        
                 
 
 def main():
