@@ -156,7 +156,7 @@ class simpleBackup(object):
     
     def makeAxisPMC(self):
         with open('Axis.pmc','w') as f: 
-            f.write(str(datetime.date.today())+"\r")
+            f.write("; "+str(datetime.date.today())+"\r")
             for axis in range(1,9):
                 f.write("\r;-------Axis " + str(axis) + "------:\r")
                 for index, val in enumerate(self.iVariables):
@@ -172,24 +172,18 @@ class simpleBackup(object):
 
     def makeEctPMC(self):
         with open('ECT.pmc','w') as f: 
-            f.write(str(datetime.date.today())+"\r")
+            f.write("; "+str(datetime.date.today())+"\r")
             for index, val in enumerate(self.iVariables):
                 if index in range(8000,8140):
                     f.write("I" + str(index) + "=" + val+"\r")
 
     def makeControlPMC(self):
         with open('Control.pmc','w') as f: 
-            f.write(str(datetime.date.today())+"\r")
+            f.write("; "+str(datetime.date.today())+"\r")
             for index, val in enumerate(self.iVariables):
                 if index in range(100):
                     f.write('{: <24}{: <1}'.format("I" + str(index) + "=" + val,";"+self.globalIVariableDescriptions[index]+"\r"))
-
-
-
-                    
-                    
-        
-                
+      
 
 def main():
 	simpleBackup()
