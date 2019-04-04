@@ -4,18 +4,19 @@ import sys
 
 if len(sys.argv) < 2:
     print "Not enough arguments"
-    print "Usage python moduleCheck.py [MAKEIOCS_PATH]"
-    print "For example python moduleCheck.py /dls_sw/work/R3.14.12.3/support/BL03I-BUILDER/etc/makeIocs"
+    print "Usage python moduleCheck.py [BUILDER]"
+    print "For example python moduleCheck.py BL03I-BUILDER"
     quit()
 
 if sys.argv[1] == "-h" or sys.argv[1] == 'h':
     print "Script determine which modules are used in a builder module"
     print "and which ones of those aren't released in rhel7"
-    print "Usage python migrate.py [MAKEIOCS_PATH]"
-    print "For example python moduleCheck.py /dls_sw/work/R3.14.12.3/support/BL03I-BUILDER/etc/makeIocs"
+    print "Usage python migrate.py [BUILDER]"
+    print "For example python moduleCheck.py BL03I-BUILDER"
     quit()
 
-path = sys.argv[1]
+builder = sys.argv[1]
+path = "/dls_sw/work/R3.14.12.3/support/"+builder+"/etc/makeIocs"
 r7Work = "/dls_sw/prod/R3.14.12.7/support"
 releaseFiles = list()
 usedModules = list()
