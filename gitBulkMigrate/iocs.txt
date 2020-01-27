@@ -1,4 +1,6 @@
-ioc BL03I/BL03I-MO-IOC-01
-ioc BL03I/BL03I-MO-IOC-02
-ioc BL03I/BL03I-MO-IOC-03
-ioc BL03I/BL03I-MO-IOC-04
+support mxOH
+support mxEH
+support mxDCM
+support ODPsu
+support I400
+support adOpenCV

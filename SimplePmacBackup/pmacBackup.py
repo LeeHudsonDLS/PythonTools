@@ -114,13 +114,23 @@ class simpleBackup(object):
         9:'Hardware 1/T control'}
         self.pti = None
         self.debug = False
+        self.macroCounter = 0
         self.ivarRaw = ''
         self.iVariables = []
+        self.mVarRaw = ''
+        self.mVariables = []
+        self.macroNodes = list()
+        self.macroVarRaw = ''
+        self.macroVariables = list()
         self.setComms()
+        self.macroDump()
         self.ivarDump()
+        self.mVarPositionsDump()
         self.makeAxisPMC()
         self.makeEctPMC()
         self.makeControlPMC()
+        self.makePosPMC()
+        self.makeMacroPMC()
 
     def setComms(self):
         self.host = sys.argv[1]
@@ -154,10 +164,33 @@ class simpleBackup(object):
         self.ivarRaw = self.ivarRaw+ self.sendCommand("i8000,140,1").replace('\x06','')
         self.iVariables = self.ivarRaw.splitlines()
     
+    def mVarPositionsDump(self):
+        self.mVarRaw = self.sendCommand("m162,32,100").replace('\x06','')
+        self.mVariables = self.mVarRaw.splitlines()
+
+    def macroDump(self):
+        for a in range(0,62):
+            self.macroCounter = self.macroCounter +1
+            if self.macroCounter != 4 and self.macroCounter != 3 :
+                self.macroNodes.append(a)
+            elif self.macroCounter == 4:
+                self.macroCounter = 0
+        for a in self.macroNodes:
+            msDecode = "ms"+str(a)+",i910"
+            msCapture = "ms"+str(a)+",i912"
+            msFlag = "ms"+str(a)+",i913"
+            msDirection = "ms"+str(a)+",i918"
+
+            self.macroVariables.append(msDecode + "=" + str(self.macroVarRaw+self.sendCommand(msDecode).replace('\x06','')))
+            self.macroVariables.append(msCapture + "=" + str(self.macroVarRaw+self.sendCommand(msCapture).replace('\x06','')))
+            self.macroVariables.append(msFlag + "=" + str(self.macroVarRaw+self.sendCommand(msFlag).replace('\x06','')))
+            self.macroVariables.append(msDirection + "=" + str(self.macroVarRaw+self.sendCommand(msDirection).replace('\x06','')))
+            
+    
     def makeAxisPMC(self):
         with open('Axis.pmc','w') as f: 
             f.write("; "+str(datetime.date.today())+"\r")
-            for axis in range(1,9):
+            for axis in range(1,33):
                 f.write("\r;-------Axis " + str(axis) + "------:\r")
                 for index, val in enumerate(self.iVariables):
                     #print str(index)
@@ -183,7 +216,21 @@ class simpleBackup(object):
             for index, val in enumerate(self.iVariables):
                 if index in range(100):
                     f.write('{: <24}{: <1}'.format("I" + str(index) + "=" + val,";"+self.globalIVariableDescriptions[index]+"\r"))
-      
+                if index in range(7000,7999):
+                    f.write("I" + str(index) + "=" + val+"\r")
+
+    def makePosPMC(self):
+        with open('POS.pmc','w') as f: 
+            f.write("; "+str(datetime.date.today())+"\r")
+            for index, val in enumerate(self.mVariables):
+                if index in range(32):
+                    f.write("M" + str(162+(index*100)) + "=" + val+"\r")
+
+    def makeMacroPMC(self):
+        with open('MACRO.pmc','w') as f: 
+            f.write("; "+str(datetime.date.today())+"\r")
+            for val in self.macroVariables:
+                    f.write(val)
 
 def main():
 	simpleBackup()
