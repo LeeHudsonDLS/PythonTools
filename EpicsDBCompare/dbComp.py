@@ -8,6 +8,7 @@ blGui = False
 recordlist = list()
 recordString = ""
 noOfRecords = 0
+noOfIOIntr = 0
 metaDataString = ""
 recordInstances = {
                     'aai':0,
@@ -43,7 +44,10 @@ localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
 databaseFiles = list()
 for x in localFiles:
     if os.path.splitext(x)[1] == ".db" or os.path.splitext(x)[1] == ".template" or os.path.splitext(x)[1] == ".vdb":
-        if x.split("-")[2] != "SIM":
+        if len(x.split("-")) > 2:
+            if x.split("-")[2] != "SIM":
+                databaseFiles.append(x)
+        else:
             databaseFiles.append(x)
 
 print databaseFiles
@@ -56,6 +60,8 @@ for index, arg in enumerate(databaseFiles):
     for x in f:
         if inRecord == True:
             recordString += x
+            if "I/O Intr" in x:
+                noOfIOIntr += 1
             if "}" in x:
                 recordlist.append(recordString)
                 recordString = ""
@@ -79,14 +85,20 @@ for record in recordInstances:
     if recordInstances[record] > 0:
         metaDataString = metaDataString + record + ":" + str(recordInstances[record]) + "\n"
 
-with open('result.txt','w') as f:
-    f.write("%s" % metaDataString)
-    for item in recordlist:
-        f.write("%s" % item)
+metaDataString = metaDataString + "Total number of I/O Inter records :" + str(noOfIOIntr) + "\n"
+
+if len(sys.argv) > 1:
+    if sys.argv[1] in ["-w","-W"]:
+        with open('result.txt','w') as f:
+            f.write("%s" % metaDataString)
+            for item in recordlist:
+                f.write("%s" % item)
 
 print "Total number of records: " + str(noOfRecords) + "\n"
 print "Number of record instances:"
 print metaDataString
 
-print "Database written to result.txt\n"
+if len(sys.argv) > 1:
+    if sys.argv[1] in ["-w","-W"]:
+        print "Database written to result.txt\n"
 
