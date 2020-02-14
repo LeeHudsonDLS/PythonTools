@@ -23,7 +23,7 @@ def getDate(fileName: str)-> str:
         dateFragment = fileName.split('-')[-2:-1][0].split('_')[-1]
 
         # Format date and time
-        date =(f'{dateFragment[-2:]}-{dateFragment[-4:-2]}-20{dateFragment[:2]}')
+        date =(f'20{dateFragment[:2]}-{dateFragment[-4:-2]}-{dateFragment[-2:]}')
         time =(f'{timeFragment[0:2]}:{timeFragment[2:4]}:{timeFragment[4:6]}')
         return f'{date}__{time}'
     else:
@@ -41,31 +41,46 @@ else:
 
 
 pvName = args.pvName
-values = list()
+values = list(list())
+values2 = list()
 changed = list()
 
 # Get autosave file names from the chosen year and sort them
-stdout = Popen(f'ls -rt | grep .sav_{year}', shell=True, stdout=PIPE).stdout
+stdout = Popen(f"grep -nr '{pvName}'", shell=True, stdout=PIPE).stdout
 
 #Go through each file and grep for the PV
 for i in stdout:
-    fileName = i.decode().rstrip("\n")
-    result = Popen(f"grep --include '{fileName}' -rn {pvName}", shell=True, stdout=PIPE).stdout
-    value = result.read().split()
-    if(len(value)==2):
-        values.append(value)
+    fileName = i.decode().rstrip("\n").split(':')[0]
+    value = i.decode().rstrip("\n").split(' ')[-1]
+    if('#' not in i.decode()):
+        values.append((fileName,value))
+
+
+
+for a in values:
+    values2.append(str(getDate(a[0]))+"     "+a[1])
+
+values2.sort()
+
 
 oldValue = 0.0
-for a in values:
-    currentValue = float(a[1].decode())
-    a[0]=getDate(a[0].decode().split(':')[0])
+for a in values2:
+    currentValue = float(a.split(' ')[-1])
     if(currentValue!=oldValue):
         changed.append(a)
         oldValue=currentValue
 
 if(args.all):
-    for a in values:
-        print(f'{a[0]}      {float(a[1].decode())}')
+    for a in values2:
+        if(a[2:4].isdigit()):
+            if(int(a[2:4])==year or not args.year):
+                print(a)
+        else:
+            print(a)
 else:
     for a in changed:
-        print(f'{a[0]}      {float(a[1].decode())}')
+        if(a[2:4].isdigit()):
+            if(int(a[2:4])==year or not args.year):
+                print(a)
+        else:
+            print(a)
