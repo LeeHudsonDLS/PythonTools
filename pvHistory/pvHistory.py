@@ -1,8 +1,9 @@
+#!/bin/env dls-python3
 import datetime
 
 from subprocess import Popen, PIPE
 import argparse
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="Shows the history of a PV in autosave. Run in the desired IOCs autosave directory")
 parser.add_argument("pvName", help="Name of the PV")
 parser.add_argument("-a","--all",action="store_true", help="Show all instances of PV in save files, not just changes")
 parser.add_argument("-y","--year",nargs=1, help="Limit search to a particular year, eg 2019")
