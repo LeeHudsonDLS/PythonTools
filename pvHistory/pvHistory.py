@@ -1,5 +1,3 @@
-
-import sys
 import datetime
 
 from subprocess import Popen, PIPE
@@ -32,6 +30,7 @@ def getDate(fileName: str)-> str:
 
 now = datetime.datetime.now()
 
+# If the optional year arg has been provided use it
 if(args.year):
     assert(int(args.year[0])>2000 and int(args.year[0]) <= now.year)
     year = int(str(args.year[0])[-2:])
@@ -39,39 +38,34 @@ else:
     year = int(str(now.year)[-2:])
 
 
-
 pvName = args.pvName
-values = list(list())
-values2 = list()
+values = list()
 changed = list()
 
-# Get autosave file names from the chosen year and sort them
+# Get all the files containing the PV
 stdout = Popen(f"grep -nr '{pvName}'", shell=True, stdout=PIPE).stdout
 
-#Go through each file and grep for the PV
+#Go through each string, format them and put them in a new list
 for i in stdout:
     fileName = i.decode().rstrip("\n").split(':')[0]
     value = i.decode().rstrip("\n").split(' ')[-1]
     if('#' not in i.decode()):
-        values.append((fileName,value))
+        values.append((str(getDate(fileName))+"     "+value))
 
 
+values.sort()
 
-for a in values:
-    values2.append(str(getDate(a[0]))+"     "+a[1])
-
-values2.sort()
-
-
+# Create a new list only showing when the PV changed
 oldValue = 0.0
-for a in values2:
+for a in values:
     currentValue = float(a.split(' ')[-1])
     if(currentValue!=oldValue):
         changed.append(a)
         oldValue=currentValue
 
+
 if(args.all):
-    for a in values2:
+    for a in values:
         if(a[2:4].isdigit()):
             if(int(a[2:4])==year or not args.year):
                 print(a)
