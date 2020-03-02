@@ -240,7 +240,7 @@ class simpleBackup(object):
 def main():
 
     # Root dir for the motion area
-    motionRoot = "/dls_sw/work/motion"
+    motionRoot = "/dls_sw/work/motion/"
 
     # Terminal server host name, assumes tserv 01
     tserv = sys.argv[1].lower()+"-nt-tserv-01"

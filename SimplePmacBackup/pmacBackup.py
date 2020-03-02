@@ -123,14 +123,14 @@ class simpleBackup(object):
         self.macroVarRaw = ''
         self.macroVariables = list()
         self.setComms()
-        self.macroDump()
-        self.ivarDump()
+        #self.macroDump()
+        #self.ivarDump()
         self.mVarPositionsDump()
-        self.makeAxisPMC()
-        self.makeEctPMC()
-        self.makeControlPMC()
+        #self.makeAxisPMC()
+        #self.makeEctPMC()
+        #self.makeControlPMC()
         self.makePosPMC()
-        self.makeMacroPMC()
+        #self.makeMacroPMC()
 
     def setComms(self):
         self.host = sys.argv[1]
