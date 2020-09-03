@@ -2,9 +2,9 @@ import sys
 import os
 from subprocess import Popen, PIPE
 
-#Nasty script to tell what version of a support module is running in all the iocs listed in iocs.txt
+#Just "ls"'s the db directories so you can tell if the ioc is a builder ioc
 
-iocListFile = open("r7FEIOCS.txt","r")
+iocListFile = open("feIOCRedirectorTags.txt","r")
 #iocListFile = open("r7SR-VA-IOCS.txt","r")
 iocs = iocListFile.read().split()
 #ioc = "FE03I-CS-IOC-01"
@@ -38,7 +38,7 @@ for ioc in iocs:
             baseIOCPath = stdout[1] + ioc + '/'
         else:
             baseIOCPath = stdout[1] + ioc + '/' + iocRelease + '/'
-        releaseFile = baseIOCPath + "configure/RELEASE"
+        dbDir = baseIOCPath + "db"
 
     else:
         stdout = stdout.split(f"{domain}")
@@ -47,16 +47,14 @@ for ioc in iocs:
             baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/'
         else:
             baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/' + iocRelease + '/'
-        releaseFile = baseIOCPath + "configure/RELEASE"
+        dbDir = baseIOCPath + "db"
         #stdout = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode().split(f"{iocType}")
         #print(stdout)
        
-    stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
-    supportModuleRelease = stdout[-1]
-    #print(f"{ioc}\t\t{supportModule}\t{supportModuleRelease}\t{releaseFile[1:]}") 
-    print(f"{ioc}\t\t{supportModule}\t{supportModuleRelease}") 
-    #print(f"{ioc}\t\t{iocRelease}") 
-    #outputList.append(f"{ioc}\t\t{iocRelease}")
+    stdout = Popen(f"ls {dbDir}",shell=True,stdout=PIPE).stdout.read().decode()
+    print(f"{ioc}\t\t{stdout}") 
+#print(f"{ioc}\t\t{iocRelease}") 
+#outputList.append(f"{ioc}\t\t{iocRelease}")
 
 #for a in outputList:
     #print(a)

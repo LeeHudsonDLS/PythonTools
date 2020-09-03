@@ -54,7 +54,7 @@ for ioc in iocs:
     stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
     supportModuleRelease = stdout[-1]
     #print(f"{ioc}\t\t{supportModule}\t{supportModuleRelease}\t{releaseFile[1:]}") 
-    print(f"{ioc}\t\t{supportModule}\t{supportModuleRelease}") 
+    print(f"{releaseFile[1:]}") 
     #print(f"{ioc}\t\t{iocRelease}") 
     #outputList.append(f"{ioc}\t\t{iocRelease}")
 
