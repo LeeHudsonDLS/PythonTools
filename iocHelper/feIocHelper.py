@@ -1,8 +1,11 @@
 import sys
 import os
 from subprocess import Popen, PIPE
+import argparse
 
 #Just "ls"'s the db directories so you can tell if the ioc is a builder ioc
+parser = argparse.ArgumentParser()
+parser.parse_args
 
 iocListFile = open("feIOCRedirectorTags.txt","r")
 #iocListFile = open("r7SR-VA-IOCS.txt","r")

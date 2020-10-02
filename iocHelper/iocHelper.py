@@ -1,14 +1,39 @@
 import sys
 import os
 from subprocess import Popen, PIPE
+import argparse
 
 #Nasty script to tell what version of a support module is running in all the iocs listed in iocs.txt
+parser = argparse.ArgumentParser()
+parser.add_argument("rhelVers", help="Int describing which RHEL version the IOCs was built with: 6,7")
+parser.add_argument("area", help="String describing which area of IOCs you want to search: FE,SR")
+parser.add_argument("supportModule", help="String describing which support module you want to search for")
+args=parser.parse_args()
 
-iocListFile = open("r7FEIOCS.txt","r")
-#iocListFile = open("r7SR-VA-IOCS.txt","r")
+validRhelVersions = [6,7]
+validAreas = ["FE","SR"]
+
+iocListFileName = ""
+
+if(int(args.rhelVers) in validRhelVersions):
+    iocListFileName += f"r{args.rhelVers}"
+else:
+    print(f"Invalid rhelVers, must be in {validRhelVersions}")
+    quit()
+
+if(args.area in validAreas):
+    if(args.area == "FE"):
+        iocListFileName += "FE-CS-IOCS.txt"
+    if(args.area == "SR"):
+        iocListFileName += "SR-VA-IOCS.txt"
+else:
+    print(f"Invalid area, must be in {validAreas}")
+    quit()
+
+
+iocListFile = open(iocListFileName,"r")
 iocs = iocListFile.read().split()
-#ioc = "FE03I-CS-IOC-01"
-supportModule = "dlsPLC"
+supportModule = args.supportModule
 outputList = list()
 
 for ioc in iocs:
