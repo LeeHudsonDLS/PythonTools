@@ -1,3 +1,5 @@
+#!/bin/env dls-python3
+
 import sys
 import os
 from subprocess import Popen, PIPE
@@ -5,9 +7,9 @@ import argparse
 
 #Nasty script to tell what version of a support module is running in all the iocs listed in iocs.txt
 parser = argparse.ArgumentParser()
-parser.add_argument("rhelVers", help="Int describing which RHEL version the IOCs was built with: 6,7")
-parser.add_argument("area", help="String describing which area of IOCs you want to search: FE,SR")
-parser.add_argument("supportModule", help="String describing which support module you want to search for")
+parser.add_argument("rhelVers", nargs='?', help="Int describing which RHEL version the IOCs was built with: 6,7", default=7)
+parser.add_argument("area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR", default="FE")
+parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="FE")
 args=parser.parse_args()
 
 validRhelVersions = [6,7]
