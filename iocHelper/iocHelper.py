@@ -5,7 +5,17 @@ import os
 from subprocess import Popen, PIPE
 import argparse
 
-def listModulerVersions(iocListFileName,supportModule):
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def listModulerVersions(iocListFileName,supportModule,latestRelease):
     iocListFile = open(os.path.dirname(__file__)+'/'+iocListFileName,"r")
     iocs = iocListFile.read().split()
     outputList = list()
@@ -48,10 +58,14 @@ def listModulerVersions(iocListFileName,supportModule):
                 baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/' + iocRelease + '/'
             releaseFile = baseIOCPath + "configure/RELEASE"
         
-        epicsVersion = baseIOCPath.split('/')[3]   
+        epicsVersion = baseIOCPath.split('/')[3]
         stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
         supportModuleRelease = stdout[-1].strip('\n')
-        print(f"{ioc}\t\t{iocRelease}\t\t{supportModule}\t{epicsVersion}\t{supportModuleRelease}") 
+        if(supportModuleRelease == latestRelease):
+            print(f"{bcolors.ENDC}{ioc}\t\t{iocRelease}\t\t{supportModule}\t{epicsVersion}\t{bcolors.OKGREEN}{supportModuleRelease}\t{latestRelease}") 
+        else:
+            print(f"{bcolors.ENDC}{ioc}\t\t{iocRelease}\t\t{supportModule}\t{epicsVersion}\t{bcolors.FAIL}{supportModuleRelease}\t{bcolors.OKGREEN}{latestRelease}") 
+
 
 #Nasty script to tell what version of a support module is running in all the iocs listed in iocs.txt
 parser = argparse.ArgumentParser()
@@ -62,8 +76,14 @@ args=parser.parse_args()
 
 validRhelVersions = [0,6,7]
 validAreas = ["FE","SR","BR","A"]
-
+print(f"Finding latest releases of {args.supportModule}")
+latestR6Release = Popen(f"dls-list-releases.py -e R3.14.12.3 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
+latestR7Release = Popen(f"dls-list-releases.py -e R3.14.12.7 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
+print(f"Latest R3.14.12.3 release of {args.supportModule} is {latestR6Release}")
+print(f"Latest R3.14.12.7 release of {args.supportModule} is {latestR7Release}")
 iocListFileName = ""
+
+print(f"IOC\t\t\tIOC Release\tSupport Module\tEPICS\t\tCurrent\tLatest") 
 
 if(int(args.rhelVers) > 0):
     if(int(args.rhelVers) in validRhelVersions):
@@ -71,6 +91,10 @@ if(int(args.rhelVers) > 0):
     else:
         print(f"Invalid rhelVers, must be in {validRhelVersions}")
         quit()
+    if(args.rhelVers == '6'):
+        latestRelease = latestR6Release
+    else:
+        latestRelease = latestR7Release
 
     if(args.area in validAreas):
         if(args.area == "FE"):
@@ -82,14 +106,14 @@ if(int(args.rhelVers) > 0):
         if(args.area == "A"):
             iocListFiles = Popen(f"ls {os.path.dirname(__file__)}/ | grep {iocListFileName} | grep IOCS.txt",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
             for iocListFileName in iocListFiles[:-1]:
-                listModulerVersions(iocListFileName,args.supportModule)
+                listModulerVersions(iocListFileName,args.supportModule,latestRelease)
             quit()
             
     else:
         print(f"Invalid area, must be in {validAreas}")
         quit()
 
-    listModulerVersions(iocListFileName,args.supportModule)
+    listModulerVersions(iocListFileName,args.supportModule,latestRelease)
 
 else:
     if(args.area in validAreas):
@@ -106,7 +130,11 @@ else:
         quit()
  
     for iocListFileName in iocListFiles[:-1]:
-        listModulerVersions(iocListFileName,args.supportModule)
+        if(iocListFileName.find('7') !=-1):
+            listModulerVersions(iocListFileName,args.supportModule,latestR7Release)
+        else:
+            listModulerVersions(iocListFileName,args.supportModule,latestR6Release)
+
 
 
 
