@@ -55,9 +55,9 @@ def listModulerVersions(iocListFileName,supportModule):
 
 #Nasty script to tell what version of a support module is running in all the iocs listed in iocs.txt
 parser = argparse.ArgumentParser()
-parser.add_argument("rhelVers", nargs='?', help="Int describing which RHEL version the IOCs was built with: 6,7", default=7)
-parser.add_argument("area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR,BR", default="FE")
-parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="FE")
+parser.add_argument('-r',dest="rhelVers", nargs='?', help="Int describing which RHEL version the IOCs was built with: 6,7", default=0)
+parser.add_argument('-a',dest="area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR,BR", default="A")
+parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="mks937b")
 args=parser.parse_args()
 
 validRhelVersions = [0,6,7]
@@ -79,6 +79,12 @@ if(int(args.rhelVers) > 0):
             iocListFileName += "SR-VA-IOCS.txt"
         if(args.area == "BR"):
             iocListFileName += "BR-VA-IOCS.txt"
+        if(args.area == "A"):
+            iocListFiles = Popen(f"ls {os.path.dirname(__file__)}/ | grep {iocListFileName} | grep IOCS.txt",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+            for iocListFileName in iocListFiles[:-1]:
+                listModulerVersions(iocListFileName,args.supportModule)
+            quit()
+            
     else:
         print(f"Invalid area, must be in {validAreas}")
         quit()
@@ -101,11 +107,6 @@ else:
  
     for iocListFileName in iocListFiles[:-1]:
         listModulerVersions(iocListFileName,args.supportModule)
-#os.path.dirname(__file__)
-#iocListFiles = Popen(f"ls {os.path.dirname(__file__)}/ | grep IOCS.txt",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
-
-#for a in outputList:
-    #print(a)
 
 
 
