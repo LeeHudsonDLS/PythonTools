@@ -15,15 +15,17 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+# Method to get module versions 
 def listModulerVersions(iocListFileName,supportModule,latestRelease):
     iocListFile = open(os.path.dirname(__file__)+'/'+iocListFileName,"r")
     iocs = iocListFile.read().split()
-    outputList = list()
+    finalOutputList = list()
 
     for ioc in iocs:
         domain = ioc.split('-')[0]
         iocType = ioc.split('-')[1]
         iocNumber = ioc.split('-')[3]
+        outputList = list()
 
 
         stdout = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode()
@@ -40,9 +42,17 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
         else:
             fullDirStructure = True
 
+        # Fudge for FE02I that has DDBA in the boot script name
+        if(ioc == "FE02I-CS-IOC-01"):
+            fullDirStructure = True
+
         if(fullDirStructure):
             stdout = stdout.split(f"{ioc}")
             iocRelease = stdout[2].split('/')[1]
+            iocArch = stdout[2].split('/')[3][0:7]
+            aa = iocArch.find('linux')
+            if iocArch.find('linux') > -1:
+                iocArch = "Linux"
             if(workIOC):
                 baseIOCPath = stdout[1] + ioc + '/'
             else:
@@ -52,6 +62,9 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
         else:
             stdout = stdout.split(f"{domain}")
             iocRelease = stdout[2].split('/')[2]
+            iocArch = stdout[2].split('/')[4][0:7]
+            if iocArch.find('linux') > -1:
+                iocArch = "Linux"
             if(workIOC):
                 baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/'
             else:
@@ -61,15 +74,20 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
         epicsVersion = baseIOCPath.split('/')[3]
         stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
         supportModuleRelease = stdout[-1].strip('\n')
-        if(supportModuleRelease == latestRelease):
-            print(f"{bcolors.ENDC}{ioc}\t\t{iocRelease}\t\t{supportModule}\t{epicsVersion}\t{bcolors.OKGREEN}{supportModuleRelease}\t{latestRelease}") 
-        else:
-            print(f"{bcolors.ENDC}{ioc}\t\t{iocRelease}\t\t{supportModule}\t{epicsVersion}\t{bcolors.FAIL}{supportModuleRelease}\t{bcolors.OKGREEN}{latestRelease}") 
+        outputList.append(f"{ioc}")
+        outputList.append(f"{iocRelease}")
+        outputList.append(f"{iocArch}")
+        outputList.append(f"{supportModule}")
+        outputList.append(f"{epicsVersion}")
+        outputList.append(f"{supportModuleRelease}")
+        outputList.append(f"{latestRelease}")
 
+        finalOutputList.append(outputList)
+    return finalOutputList
 
 #Nasty script to tell what version of a support module is running in all the iocs listed in iocs.txt
 parser = argparse.ArgumentParser()
-parser.add_argument('-r',dest="rhelVers", nargs='?', help="Int describing which RHEL version the IOCs was built with: 6,7", default=0)
+parser.add_argument('-r',dest="rhelVers", nargs='?', help="Int describing which RHEL version the IOCs was built with: 6,7", default=7)
 parser.add_argument('-a',dest="area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR,BR", default="A")
 parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="mks937b")
 args=parser.parse_args()
@@ -77,13 +95,23 @@ args=parser.parse_args()
 validRhelVersions = [0,6,7]
 validAreas = ["FE","SR","BR","A"]
 print(f"Finding latest releases of {args.supportModule}")
+
+# Get the support module latest release using dls-list-releases.py
 latestR6Release = Popen(f"dls-list-releases.py -e R3.14.12.3 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
 latestR7Release = Popen(f"dls-list-releases.py -e R3.14.12.7 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
+#latestR6Release="2-86-1"
+#latestR7Release="2-87"
 print(f"Latest R3.14.12.3 release of {args.supportModule} is {latestR6Release}")
 print(f"Latest R3.14.12.7 release of {args.supportModule} is {latestR7Release}")
 iocListFileName = ""
 
-print(f"IOC\t\t\tIOC Release\tSupport Module\tEPICS\t\tCurrent\tLatest") 
+tableHeader = ["IOC","IOC Release","IOC Arch","Support Module","EPICS","Current","Latest"]
+rowFormat = "{}"
+rowFormat += "{:<20}{:<16}{:<16}{:<20}{:<15}{:<16}{:<16}"
+tableData = list()
+print(rowFormat.format("",*tableHeader))
+#print(f"IOC\t\t\tIOC Release\tSupport Module\tEPICS\t\tCurrent\tLatest") 
+
 
 if(int(args.rhelVers) > 0):
     if(int(args.rhelVers) in validRhelVersions):
@@ -106,14 +134,18 @@ if(int(args.rhelVers) > 0):
         if(args.area == "A"):
             iocListFiles = Popen(f"ls {os.path.dirname(__file__)}/ | grep {iocListFileName} | grep IOCS.txt",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
             for iocListFileName in iocListFiles[:-1]:
-                listModulerVersions(iocListFileName,args.supportModule,latestRelease)
-            quit()
+                for a in listModulerVersions(iocListFileName,args.supportModule,latestRelease):
+                    tableData.append(a)
+                    #tableData.append(listModulerVersions(iocListFileName,args.supportModule,latestRelease))
+            #quit()
             
     else:
         print(f"Invalid area, must be in {validAreas}")
         quit()
 
-    listModulerVersions(iocListFileName,args.supportModule,latestRelease)
+    for a in listModulerVersions(iocListFileName,args.supportModule,latestRelease):
+        tableData.append(a)
+        #tableData.append(listModulerVersions(iocListFileName,args.supportModule,latestRelease))
 
 else:
     if(args.area in validAreas):
@@ -131,11 +163,16 @@ else:
  
     for iocListFileName in iocListFiles[:-1]:
         if(iocListFileName.find('7') !=-1):
-            listModulerVersions(iocListFileName,args.supportModule,latestR7Release)
+            for a in listModulerVersions(iocListFileName,args.supportModule,latestR7Release):
+                tableData.append(a)
+                #tableData.append(listModulerVersions(iocListFileName,args.supportModule,latestR7Release))
         else:
-            listModulerVersions(iocListFileName,args.supportModule,latestR6Release)
+            for a in listModulerVersions(iocListFileName,args.supportModule,latestR6Release):
+                tableData.append(a)
+                #tableData.append(listModulerVersions(iocListFileName,args.supportModule,latestR6Release))
 
-
+for header, row in zip(tableData,tableData):
+    print(rowFormat.format("",*row))
 
 
 
