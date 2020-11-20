@@ -15,6 +15,10 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def printData(tableData):
+    for header, row in zip(tableData,tableData):
+        print(rowFormat.format("",*row))
+
 # Method to get module versions 
 def listModulerVersions(iocListFileName,supportModule,latestRelease):
     iocListFile = open(os.path.dirname(__file__)+'/'+iocListFileName,"r")
@@ -137,7 +141,8 @@ if(int(args.rhelVers) > 0):
                 for a in listModulerVersions(iocListFileName,args.supportModule,latestRelease):
                     tableData.append(a)
                     #tableData.append(listModulerVersions(iocListFileName,args.supportModule,latestRelease))
-            #quit()
+            printData(tableData)
+            quit()
             
     else:
         print(f"Invalid area, must be in {validAreas}")
@@ -171,8 +176,7 @@ else:
                 tableData.append(a)
                 #tableData.append(listModulerVersions(iocListFileName,args.supportModule,latestR6Release))
 
-for header, row in zip(tableData,tableData):
-    print(rowFormat.format("",*row))
+printData(tableData)
 
 
 
