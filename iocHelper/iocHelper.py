@@ -16,8 +16,20 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 def printData(tableData):
+
+    arch = ''
+    if args.linux:
+        arch = 'Linux'
+    if args.vxworks:
+        arch = 'vxWorks'
+
     for header, row in zip(tableData,tableData):
-        print(rowFormat.format("",*row))
+        if len(arch) > 1:
+            if arch in row:
+                print(rowFormat.format("",*row))
+        else:
+            print(rowFormat.format("",*row))
+
 
 # Method to get module versions 
 def listModulerVersions(iocListFileName,supportModule,latestRelease):
@@ -93,6 +105,8 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
 parser = argparse.ArgumentParser()
 parser.add_argument('-r',dest="rhelVers", nargs='?', help="Int describing which RHEL version the IOCs was built with: 6,7", default=7)
 parser.add_argument('-a',dest="area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR,BR", default="A")
+parser.add_argument('-l','--linux',action='store_true')
+parser.add_argument('-v','--vxworks',action='store_true')
 parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="mks937b")
 args=parser.parse_args()
 
