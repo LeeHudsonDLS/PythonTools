@@ -1,0 +1,60 @@
+TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
+SUPPORT=/dls_sw/prod/R3.14.12.7/support
+WORK=/dls_sw/work/R3.14.12.7/support
+
+
+CALC=           $(SUPPORT)/calc/3-7-3
+SSCAN=          $(SUPPORT)/sscan/
+GENSUB=         $(SUPPORT)/genSub/
+MOTOR=          $(SUPPORT)/motor/
+TPMAC=          $(SUPPORT)/tpmac/
+PMACUTIL=       $(SUPPORT)/pmacUtil/
+ASYN=           $(SUPPORT)/asyn/
+STREAMS=        $(SUPPORT)/streamDevice/
+HOSTLINK=       $(SUPPORT)/HostLink/
+FINS=           $(SUPPORT)/FINS/
+SPACE=          $(SUPPORT)/vacuumSpace/
+VALVE=          $(SUPPORT)/dlsPLC/
+MKS=            $(SUPPORT)/mks937b/
+MPC=            $(SUPPORT)/digitelMpc/
+DEVIOCSTATS=    $(SUPPORT)/devIocStats/
+MPSPERMIT=      $(SUPPORT)/mpsPermit/
+BUSY=           $(SUPPORT)/busy/
+AUTOSAVE=       $(SUPPORT)/autosave/
+ETHERCAT=       $(SUPPORT)/ethercat/
+TEMPERATURE=    $(SUPPORT)/temperature/
+FE=             $(SUPPORT)/FE/
+UTILITY=        $(SUPPORT)/utility/
+IPAC=           $(SUPPORT)/ipac/
+HY8515=         $(SUPPORT)/DLS8515/
+HY8401=         $(SUPPORT)/Hy8401ip/
+HY8403=         $(SUPPORT)/Hy8403ip/
+STD=            $(SUPPORT)/std/
+VACUUM=         $(SUPPORT)/vacuum/
+GAUGE=          $(SUPPORT)/mks937a/
+FAN=            $(SUPPORT)/rackFan/
+WATER=          $(SUPPORT)/water/
+PRESSARR=       $(SUPPORT)/pressArr_subrec/
+IOCINFO=        $(SUPPORT)/IOCinfo/
+DLS8512=        $(SUPPORT)/DLS8512/
+DLS8512TMP=     $(SUPPORT)/DLS8512Templates/
+LOCUM4=         $(SUPPORT)/enzLoCuM4/
+PT100=          $(SUPPORT)/PT100/
+TIMINGT=        $(SUPPORT)/TimingTemplates/
+TIMING=         $(SUPPORT)/mrfTiming/
+ISEG=           $(SUPPORT)/iseg-VHS40x/
+PVLOGGING=      $(SUPPORT)/pvlogging/
+USERIO=         $(SUPPORT)/userIO/
+SLIT=           $(SUPPORT)/slit/
+GENERIC=        $(SUPPORT)/generic/
+BLGUI=          $(SUPPORT)/BLGui/
+PORTFWD=        $(SUPPORT)/portforward/
+THERMOCOUPLE=   $(SUPPORT)/Thermocouple/
+EUROTHERM2K=    $(SUPPORT)/eurotherm2k/
+
+# If using the sequencer, point SNCSEQ at its top directory:
+SNCSEQ=$(SUPPORT)/seq/2-2-5
+
+# EPICS_BASE usually appears last so other apps can override stuff:
+EPICS_BASE=/dls_sw/epics/R3.14.12.7/base
+

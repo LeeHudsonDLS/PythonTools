@@ -1,0 +1,45 @@
+
+
+UTILITY=        $(SUPPORT)/utility/dls2-18
+IPAC=           $(SUPPORT)/ipac/2-8dls4-8-1
+HY8515=         $(SUPPORT)/DLS8515/0-11
+HY8401=         $(SUPPORT)/Hy8401ip/3-19
+HY8403=         $(SUPPORT)/Hy8403ip/3.1.0
+ASYN=           $(SUPPORT)/asyn/4-34
+STREAMS=        $(SUPPORT)/streamDevice/2-5dls9
+FINS=			$(SUPPORT)/FINS/3-8
+CALC=           $(SUPPORT)/calc/3-7
+SSCAN=          $(SUPPORT)/sscan/2-11
+GENSUB=         $(SUPPORT)/genSub/1-8dls3
+STD=            $(SUPPORT)/std/3-4-1dls2
+# Devices
+VACUUM=         $(SUPPORT)/vacuum/4-30
+SPACE=          $(SUPPORT)/vacuumSpace/4-6
+VALVE=          $(SUPPORT)/dlsPLC/2-8-3
+GAUGE=          $(SUPPORT)/mks937a/2-90
+MPC=            $(SUPPORT)/digitelMpc/6-8
+FAN=            $(SUPPORT)/rackFan/2-12
+WATER=          $(SUPPORT)/water/1-24
+PRESSARR=       $(SUPPORT)/pressArr_subrec/1-1
+DEVIOCSTATS=    $(SUPPORT)/devIocStats/3-1-14dls3-1
+IOCINFO=        $(SUPPORT)/IOCinfo/4-2
+DLS8512=        $(SUPPORT)/DLS8512/4-0
+DLS8512TMP=     $(SUPPORT)/DLS8512Templates/2-0
+LOCUM4=         $(SUPPORT)/enzLoCuM4/2-35
+PT100=          $(SUPPORT)/PT100/4-0
+THERMOCOUPLE=   $(SUPPORT)/Thermocouple/3-0
+MPSPERMIT=      $(SUPPORT)/mpsPermit/3-0
+BUSY=           $(SUPPORT)/busy/1-7dls1
+TIMINGT=        $(SUPPORT)/TimingTemplates/6-11
+TIMING=         $(SUPPORT)/mrfTiming/2-4-1dls10
+EUROTHERM2K=    $(SUPPORT)/eurotherm2k/2-3
+FE=             $(SUPPORT)/FE/7-3
+
+AUTOSAVE=       $(SUPPORT)/autosave/5-9dls1
+
+# If using the sequencer, point SNCSEQ at its top directory:
+SNCSEQ=         $(SUPPORT)/seq/2-2-5
+
+# EPICS_BASE usually appears last so other apps can override stuff:
+EPICS_BASE=/dls_sw/epics/R3.14.12.7/base
+

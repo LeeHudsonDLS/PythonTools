@@ -1,0 +1,16 @@
+SUPPORT=/dls_sw/prod/R3.14.12.7/support
+# Module definitions
+ASYN = $(SUPPORT)/asyn/4-34
+AUTOSAVE = $(SUPPORT)/autosave/5-9dls2
+BUSY = $(SUPPORT)/busy/1-7dls1
+CALC = $(SUPPORT)/calc/3-7
+DEVIOCSTATS = $(SUPPORT)/devIocStats/3-1-14dls3-3
+DIGITELMPC = $(SUPPORT)/digitelMpc/6-8
+DLSPLC = $(SUPPORT)/dlsPLC/2-8-3
+ETHERCAT = $(SUPPORT)/ethercat/7-0
+FE = $(SUPPORT)/FE/7-4
+FINS = $(SUPPORT)/FINS/3-8-1
+MKS937B = $(SUPPORT)/mks937b/2-87
+STREAMDEVICE = $(SUPPORT)/streamDevice/3-0-beta1
+USERIO = $(SUPPORT)/userIO/2-28
+VACUUMSPACE = $(SUPPORT)/vacuumSpace/4-9
