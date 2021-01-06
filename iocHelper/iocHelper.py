@@ -77,8 +77,13 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
 
         else:
             stdout = stdout.split(f"{domain}")
-            iocRelease = stdout[2].split('/')[2]
-            iocArch = stdout[2].split('/')[4][0:7]
+            if(workIOC):
+                iocRelease = "work"
+                iocArch = stdout[2].split('/')[3][0:7]
+            else:
+                iocRelease = stdout[2].split('/')[2]
+                iocArch = stdout[2].split('/')[4][0:7]
+
             if iocArch.find('linux') > -1:
                 iocArch = "Linux"
             if(workIOC):
