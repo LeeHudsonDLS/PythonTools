@@ -93,11 +93,42 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
             releaseFile = baseIOCPath + "configure/RELEASE"
         
         epicsVersion = baseIOCPath.split('/')[3]
-        stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
-        supportModuleRelease = stdout[-1].strip('\n')
+
+        #Check if using feMasterConfig
+        #If using feMasterConfig we must look here for the release file, not in the IOC
+        #List all includes that contain feMasterConfig (should be 2)
+        stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep feMasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+        if stdout[0].find('feMasterConfig') == -1:
+            stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+            supportModuleRelease = stdout[-1].strip('\n')
+            usesfeMasterConfig = False
+            feMasterConfigRelease = ''
+        else:
+            usesfeMasterConfig = True
+            if stdout[0].find("work") == -1:
+                feMasterConfigRelease = stdout[0].split('/')[-3]
+            else:
+                feMasterConfigRelease = "work"
+            
+            commonReleaseFile = stdout[0].replace("include ","")
+            platformReleaseFile = stdout[1].replace("include ","")
+            commonReleaseFileCont = Popen(f"cat {commonReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+            platformReleaseFileCont = Popen(f"cat {platformReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+
+            if  len(commonReleaseFileCont) > 1:
+                supportModuleRelease = commonReleaseFileCont[-1].strip('\n')
+            else:
+                supportModuleRelease = platformReleaseFileCont[-1].strip('\n')
+
+
+        
+
+        #stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep feMasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+
         outputList.append(f"{ioc}")
         outputList.append(f"{iocRelease}")
         outputList.append(f"{iocArch}")
+        outputList.append(f"{feMasterConfigRelease}")
         outputList.append(f"{supportModule}")
         outputList.append(f"{epicsVersion}")
         outputList.append(f"{supportModuleRelease}")
@@ -112,7 +143,7 @@ parser.add_argument('-r',dest="rhelVers", nargs='?', help="Int describing which 
 parser.add_argument('-a',dest="area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR,BR", default="A")
 parser.add_argument('-l','--linux',action='store_true')
 parser.add_argument('-v','--vxworks',action='store_true')
-parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="mks937b")
+parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="digitelMpc")
 args=parser.parse_args()
 
 validRhelVersions = [0,6,7]
@@ -128,9 +159,9 @@ print(f"Latest R3.14.12.3 release of {args.supportModule} is {latestR6Release}")
 print(f"Latest R3.14.12.7 release of {args.supportModule} is {latestR7Release}")
 iocListFileName = ""
 
-tableHeader = ["IOC","IOC Release","IOC Arch","Support Module","EPICS","Current","Latest"]
+tableHeader = ["IOC","IOC Release","IOC Arch","feMasterConfig","Support Module","EPICS","Current","Latest"]
 rowFormat = "{}"
-rowFormat += "{:<20}{:<16}{:<16}{:<20}{:<15}{:<16}{:<16}"
+rowFormat += "{:<20}{:<16}{:<12}{:<18}{:<20}{:<15}{:<16}{:<16}"
 tableData = list()
 print(rowFormat.format("",*tableHeader))
 #print(f"IOC\t\t\tIOC Release\tSupport Module\tEPICS\t\tCurrent\tLatest") 
