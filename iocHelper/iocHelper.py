@@ -131,8 +131,10 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
             if not builder:
                 releaseFile = releaseFile.replace("prod","work")
                 releaseFile = releaseFile.replace(f"/{iocRelease}","")
+                iocRelease = "work"
             else:
                 releaseFile = f"{workLocation}{args.area}-BUILDER/etc/makeIocs/{ioc}_RELEASE"
+                iocRelease = "work"
 
         #Check if using feMasterConfig
         #If using feMasterConfig we must look here for the release file, not in the IOC
