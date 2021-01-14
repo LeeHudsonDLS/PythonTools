@@ -15,6 +15,9 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
+workLocation = "/dls_sw/work/R3.14.12.7/support/"
+
 def printData(tableData):
 
     arch = ''
@@ -30,6 +33,29 @@ def printData(tableData):
         else:
             print(rowFormat.format("",*row))
 
+# Return a dict with builder IOC names as key and source builder release as value
+def getBuilderIOCS():
+    feBuilderPath = "/dls_sw/work/R3.14.12.7/support/FE-BUILDER/etc/makeIocs"
+    builderIOCs = dict()
+    allBuilderIOCs = Popen(f"ls {feBuilderPath} | grep xml",shell=True,stdout=PIPE).stdout.read().decode().replace(".xml","").split('\n')
+    allBuilderIOCs.pop()
+
+
+    for ioc in allBuilderIOCs:
+        iocBootScriptPath = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode().split(" ")[1].strip('\n')
+        builderReleaseFile = Popen(f'cat {iocBootScriptPath} | grep "source:"',shell=True,stdout=PIPE).stdout.read().decode().split(' ')[2]
+        builderReleaseFile = builderReleaseFile.strip('\n')
+        builderReleaseFile = builderReleaseFile.replace(".xml","_RELEASE")
+        builderIOCs[ioc] = list()
+        builderIOCs[ioc].append(builderReleaseFile)
+
+        if iocBootScriptPath.find('linux') > -1:
+            iocArch = "Linux"
+        else:
+            iocArch = "vxWorks"
+        builderIOCs[ioc].append(iocArch)
+
+    return builderIOCs
 
 # Method to get module versions 
 def listModulerVersions(iocListFileName,supportModule,latestRelease):
@@ -37,83 +63,99 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
     iocs = iocListFile.read().split()
     finalOutputList = list()
 
+    builderIOCS = getBuilderIOCS()
+
     for ioc in iocs:
         domain = ioc.split('-')[0]
         iocType = ioc.split('-')[1]
         iocNumber = ioc.split('-')[3]
         outputList = list()
 
-
-        stdout = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode()
-        if(stdout.find("work") == -1):
-            workIOC = False;
-        else:
-            workIOC = True;
-        # Determine if the direcory structure is the full version, eg, FE02J/FE02J-CS-IOC-01 or
-        # the short version, eg, FE03J/CS
-        # If find and rfind (reverse find) come up with the same index is means the ioc name
-        # only occurs once which will be in the binary file, this is not the full dir struct
-        if (stdout[len(ioc)+1:].find(ioc) == stdout[len(ioc)+1:].rfind(ioc)):
-            fullDirStructure = False
-        else:
-            fullDirStructure = True
-
-        # Fudge for FE02I that has DDBA in the boot script name
-        if(ioc == "FE02I-CS-IOC-01"):
-            fullDirStructure = True
-
-        if(fullDirStructure):
-            stdout = stdout.split(f"{ioc}")
-            iocRelease = stdout[2].split('/')[1]
-            iocArch = stdout[2].split('/')[3][0:7]
-            aa = iocArch.find('linux')
-            if iocArch.find('linux') > -1:
-                iocArch = "Linux"
-            if(workIOC):
-                baseIOCPath = stdout[1] + ioc + '/'
+        if ioc not in builderIOCS.keys():
+            builder = False
+            stdout = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode()
+            if(stdout.find("work") == -1):
+                workIOC = False;
             else:
-                baseIOCPath = stdout[1] + ioc + '/' + iocRelease + '/'
-            releaseFile = baseIOCPath + "configure/RELEASE"
+                workIOC = True;
+            # Determine if the direcory structure is the full version, eg, FE02J/FE02J-CS-IOC-01 or
+            # the short version, eg, FE03J/CS
+            # If find and rfind (reverse find) come up with the same index is means the ioc name
+            # only occurs once which will be in the binary file, this is not the full dir struct
+            if (stdout[len(ioc)+1:].find(ioc) == stdout[len(ioc)+1:].rfind(ioc)):
+                fullDirStructure = False
+            else:
+                fullDirStructure = True
 
-        else:
-            stdout = stdout.split(f"{domain}")
-            if(workIOC):
-                iocRelease = "work"
+            # Fudge for FE02I that has DDBA in the boot script name
+            if(ioc == "FE02I-CS-IOC-01"):
+                fullDirStructure = True
+
+            if(fullDirStructure):
+                stdout = stdout.split(f"{ioc}")
+                iocRelease = stdout[2].split('/')[1]
                 iocArch = stdout[2].split('/')[3][0:7]
-            else:
-                iocRelease = stdout[2].split('/')[2]
-                iocArch = stdout[2].split('/')[4][0:7]
+                aa = iocArch.find('linux')
+                if iocArch.find('linux') > -1:
+                    iocArch = "Linux"
+                if(workIOC):
+                    baseIOCPath = stdout[1] + ioc + '/'
+                else:
+                    baseIOCPath = stdout[1] + ioc + '/' + iocRelease + '/'
+                releaseFile = baseIOCPath + "configure/RELEASE"
 
-            if iocArch.find('linux') > -1:
-                iocArch = "Linux"
-            if(workIOC):
-                baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/'
             else:
-                baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/' + iocRelease + '/'
-            releaseFile = baseIOCPath + "configure/RELEASE"
-        
-        epicsVersion = baseIOCPath.split('/')[3]
+                stdout = stdout.split(f"{domain}")
+                if(workIOC):
+                    iocRelease = "work"
+                    iocArch = stdout[2].split('/')[3][0:7]
+                else:
+                    iocRelease = stdout[2].split('/')[2]
+                    iocArch = stdout[2].split('/')[4][0:7]
+
+                if iocArch.find('linux') > -1:
+                    iocArch = "Linux"
+                if(workIOC):
+                    baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/'
+                else:
+                    baseIOCPath = stdout[1][len(ioc)-len(domain)+1:] + domain + '/' + iocType + '/' + iocRelease + '/'
+                releaseFile = baseIOCPath + "configure/RELEASE"
+            
+            epicsVersion = baseIOCPath.split('/')[3]
+        else:
+            builder = True
+            releaseFile = builderIOCS[ioc][0]
+            iocArch = builderIOCS[ioc][1]
+        # If we are to use the work version of the ioc modify the release file accordingly.
+        if args.work and not workIOC:
+            if not builder:
+                releaseFile = releaseFile.replace("prod","work")
+                releaseFile = releaseFile.replace(f"/{iocRelease}","")
+            else:
+                releaseFile = f"{workLocation}{args.area}-BUILDER/etc/makeIocs/{ioc}_RELEASE"
 
         #Check if using feMasterConfig
         #If using feMasterConfig we must look here for the release file, not in the IOC
         #List all includes that contain feMasterConfig (should be 2)
-        stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep feMasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
-        if stdout[0].find('feMasterConfig') == -1:
+        stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep MasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+        if stdout[0].find('MasterConfig') == -1:
             stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
             supportModuleRelease = stdout[-1].strip('\n')
-            usesfeMasterConfig = False
-            feMasterConfigRelease = ''
+            masterConfigRelease = 'N/A'
         else:
-            usesfeMasterConfig = True
             if stdout[0].find("work") == -1:
-                feMasterConfigRelease = stdout[0].split('/')[-3]
+                masterConfigRelease = stdout[0].split('/')[-3]
             else:
-                feMasterConfigRelease = "work"
+                masterConfigRelease = "work"
             
             commonReleaseFile = stdout[0].replace("include ","")
-            platformReleaseFile = stdout[1].replace("include ","")
             commonReleaseFileCont = Popen(f"cat {commonReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
-            platformReleaseFileCont = Popen(f"cat {platformReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+            
+            platformReleaseFile = stdout[1].replace("include ","")
+            if len(platformReleaseFile) > 1:
+                platformReleaseFileCont = Popen(f"cat {platformReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+            else:
+                platformReleaseFileCont = ""
 
             if  len(commonReleaseFileCont) > 1:
                 supportModuleRelease = commonReleaseFileCont[-1].strip('\n')
@@ -123,12 +165,11 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
 
         
 
-        #stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep feMasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('/')
 
         outputList.append(f"{ioc}")
         outputList.append(f"{iocRelease}")
         outputList.append(f"{iocArch}")
-        outputList.append(f"{feMasterConfigRelease}")
+        outputList.append(f"{masterConfigRelease}")
         outputList.append(f"{supportModule}")
         outputList.append(f"{epicsVersion}")
         outputList.append(f"{supportModuleRelease}")
@@ -143,6 +184,7 @@ parser.add_argument('-r',dest="rhelVers", nargs='?', help="Int describing which 
 parser.add_argument('-a',dest="area",nargs='?', help="String describing which area of IOCs you want to search: FE,SR,BR", default="A")
 parser.add_argument('-l','--linux',action='store_true')
 parser.add_argument('-v','--vxworks',action='store_true')
+parser.add_argument('-w','--work',action='store_true')
 parser.add_argument("supportModule",nargs='?', help="String describing which support module you want to search for", default="digitelMpc")
 args=parser.parse_args()
 
@@ -153,13 +195,12 @@ print(f"Finding latest releases of {args.supportModule}")
 # Get the support module latest release using dls-list-releases.py
 latestR6Release = Popen(f"dls-list-releases.py -e R3.14.12.3 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
 latestR7Release = Popen(f"dls-list-releases.py -e R3.14.12.7 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
-#latestR6Release="2-86-1"
-#latestR7Release="2-87"
+
 print(f"Latest R3.14.12.3 release of {args.supportModule} is {latestR6Release}")
 print(f"Latest R3.14.12.7 release of {args.supportModule} is {latestR7Release}")
 iocListFileName = ""
 
-tableHeader = ["IOC","IOC Release","IOC Arch","feMasterConfig","Support Module","EPICS","Current","Latest"]
+tableHeader = ["IOC","IOC Release","IOC Arch","masterConfig","Support Module","EPICS","Current","Latest"]
 rowFormat = "{}"
 rowFormat += "{:<20}{:<16}{:<12}{:<18}{:<20}{:<15}{:<16}{:<16}"
 tableData = list()
