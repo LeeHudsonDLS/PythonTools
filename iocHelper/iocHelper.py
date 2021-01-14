@@ -192,9 +192,16 @@ validRhelVersions = [0,6,7]
 validAreas = ["FE","SR","BR","A"]
 print(f"Finding latest releases of {args.supportModule}")
 
-# Get the support module latest release using dls-list-releases.py
-latestR6Release = Popen(f"dls-list-releases.py -e R3.14.12.3 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
-latestR7Release = Popen(f"dls-list-releases.py -e R3.14.12.7 -l {args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')[0]
+# Get the support module latest release using ls
+latestR6Release = Popen(f"ls -tr /dls_sw/prod/R3.14.12.3/support/{args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+while latestR6Release[-2].find("tar") > -1:
+    latestR6Release.pop()
+latestR6Release = latestR6Release[-2]
+
+latestR7Release = Popen(f"ls -tr /dls_sw/prod/R3.14.12.7/support/{args.supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+while latestR7Release[-2].find("tar") > -1:
+    latestR7Release.pop()
+latestR7Release = latestR7Release[-2]
 
 print(f"Latest R3.14.12.3 release of {args.supportModule} is {latestR6Release}")
 print(f"Latest R3.14.12.7 release of {args.supportModule} is {latestR7Release}")
