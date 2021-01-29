@@ -55,6 +55,9 @@ def getBuilderIOCS():
             iocArch = "vxWorks"
         builderIOCs[ioc].append(iocArch)
 
+        basePath = iocBootScriptPath.split("bin")[0]
+        builderIOCs[ioc].append(basePath)
+
     return builderIOCs
 
 # Method to get module versions 
@@ -165,7 +168,15 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
                 supportModuleRelease = platformReleaseFileCont[-1].strip('\n')
 
 
-        
+        # Check if the module is actually used in this IOC:
+        #print(f"{ioc}")
+        if ioc not in builderIOCS.keys():
+            stdout = Popen(f"cat {baseIOCPath}db/{ioc}.db | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode()
+        else:
+            stdout = Popen(f"cat {builderIOCS[ioc][2]}db/{ioc}_expanded.db | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode()
+
+        if(len(stdout)==0):
+            supportModuleRelease = ''
 
 
         outputList.append(f"{ioc}")
