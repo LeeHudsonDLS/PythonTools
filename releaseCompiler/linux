@@ -1,0 +1,9 @@
+SEQ=		$(SUPPORT)/seq/2-2-5dls1
+PUMP=       $(SUPPORT)/vacuumPump/1-21
+PT100=      $(SUPPORT)/PT100/4-2
+MPSPERMIT=  $(SUPPORT)/mpsPermit/3-0
+TEMPERATURE= $(SUPPORT)/temperature/2-18
+ETHERCAT=   $(SUPPORT)/ethercat/7-2
+FE=         $(SUPPORT)/FE/7-6
+
+

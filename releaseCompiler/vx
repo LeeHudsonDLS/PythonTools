@@ -1,0 +1,14 @@
+UTILITY=        $(SUPPORT)/utility/dls2-18
+SSCAN=          $(SUPPORT)/sscan/2-11
+IPAC=           $(SUPPORT)/ipac/2-8dls4-8-1
+DLS8515=        $(SUPPORT)/DLS8515/0-11
+HY8401IP=       $(SUPPORT)/Hy8401ip/3-20
+HOSTLINK=       $(SUPPORT)/HostLink/3-2
+SRVA=           $(SUPPORT)/SR-VA/2-0
+PRESSARR=       $(SUPPORT)/pressArr_subrec/1-1
+MRFTIMING=      $(SUPPORT)/mrfTiming/2-4-1dls10
+TIMINGTEMPLATES=$(SUPPORT)/TimingTemplates/6-11
+VACUUM=         $(SUPPORT)/vacuum/4-30
+FASTVACUUM=     $(SUPPORT)/FastVacuum/2-0
+HY8414=         $(SUPPORT)/Hy8414/2-0
+

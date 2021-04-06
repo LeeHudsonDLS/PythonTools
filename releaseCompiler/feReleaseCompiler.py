@@ -9,10 +9,9 @@ import argparse
 
 modules = list(list())
 modulesUnique = list()
-#files = ['FE02I','FE02J','FE05I','FE07B','FE08I','FE10B','FE11K','FE14I','FE21I','FE21B','FE23I','FE24B']
-files = ['FE03I','FE04I','FE06I','FE07I','FE09I','FE10I','FE11I','FE12I','FE13I','FE15I','FE16I','FE16B','FE18I','FE18B','FE19I','FE20I','FE22I','FE22B','FE23B','FE24I']
-#files = Popen(f"ls | grep _RELEASE",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
-#print(files)
+#files = ['SR02C','SR02J','SR05C','SR07B','SR08C','SR10B','SR11K','SR14C','SR21C','SR21B','SR23C','SR24B']
+files = ['SR01C','SR03C','SR04C','SR05C','SR06C','SR07C','SR08C','SR09C','SR10C','SR11C','SR12C','SR13C','SR14C','SR15C','SR16C','SR17C','SR18C','SR19C','SR20C','SR21C','SR22C','SR23C','SR24C']
+
 
 for file in files:
     if len(file) > 0:
@@ -22,11 +21,11 @@ for file in files:
                 macro = line.split('/')[0]
                 module = line.split('/')[1]
                 if module not in modulesUnique:
-                    moduleInfo = list()
-                    moduleInfo.append(macro)
-                    moduleInfo.append(module)
-                    moduleInfo.append(file)
-                    modules.append(moduleInfo)
+                    moduleCnfo = list()
+                    moduleCnfo.append(macro)
+                    moduleCnfo.append(module)
+                    moduleCnfo.append(file)
+                    modules.append(moduleCnfo)
                     modulesUnique.append(module)
 
 for a in modules:

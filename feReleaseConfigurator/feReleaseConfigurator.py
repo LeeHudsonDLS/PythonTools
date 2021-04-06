@@ -10,9 +10,18 @@ import fileinput
 # Method to get module versions 
 def listModulerVersions(iocListFileName,vers):
     iocListFile = open(os.path.dirname(__file__)+'/'+iocListFileName,"r")
-    iocs = iocListFile.read().split()
+
+    if(args.ioc == 'A'):
+        iocs = iocListFile.read().split()
+    else:
+        iocs =[args.ioc]
+
     builderIOCS=['FE10B-CS-IOC-01']
     for ioc in iocs:
+        # Skip commented out IOC
+        if(ioc[0]=='#'):
+            continue
+
         domain = ioc.split('-')[0]
         iocType = ioc.split('-')[1]
 
@@ -108,6 +117,8 @@ def listModulerVersions(iocListFileName,vers):
 parser = argparse.ArgumentParser()
 parser.add_argument("vers", nargs='?',help="Version of feMasterConfig to update to")
 parser.add_argument('-p','--print',action='store_true',help="Just print the current trimmed down RELEASE file")
+parser.add_argument('-i',dest="ioc",nargs='?', help="If you only want to change a single IOC, use this argument with the IOC name", default="A")
+
 args=parser.parse_args()
 
 if args.vers == None and args.print == False:
@@ -116,4 +127,6 @@ if args.vers == None and args.print == False:
 
 
 print(os.path.dirname(__file__))
+if(args.print):
+    print("Printing WORK release file contents")
 listModulerVersions("iocs.txt",args.vers)

@@ -34,6 +34,11 @@ def printData(tableData):
             print(rowFormat.format("",*row))
 
 # Return a dict with builder IOC names as key and source builder release as value
+# builderIOCS[ioc][0] = builderReleaseFile
+# builderIOCS[ioc][1] = iocArch
+# builderIOCS[ioc][2] = basePath
+# builderIOCS[ioc][3] = release
+
 def getBuilderIOCS():
     feBuilderPath = "/dls_sw/work/R3.14.12.7/support/FE-BUILDER/etc/makeIocs"
     builderIOCs = dict()
@@ -42,21 +47,30 @@ def getBuilderIOCS():
 
 
     for ioc in allBuilderIOCs:
-        iocBootScriptPath = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode().split(" ")[1].strip('\n')
-        builderReleaseFile = Popen(f'cat {iocBootScriptPath} | grep "source:"',shell=True,stdout=PIPE).stdout.read().decode().split(' ')[2]
-        builderReleaseFile = builderReleaseFile.strip('\n')
-        builderReleaseFile = builderReleaseFile.replace(".xml","_RELEASE")
-        builderIOCs[ioc] = list()
-        builderIOCs[ioc].append(builderReleaseFile)
+        try:
+            iocBootScriptPath = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode().split(" ")[1].strip('\n')
+            builderReleaseFile = Popen(f'cat {iocBootScriptPath} | grep "source:"',shell=True,stdout=PIPE).stdout.read().decode().split(' ')[2]
+            builderReleaseFile = builderReleaseFile.strip('\n')
+            builderReleaseFile = builderReleaseFile.replace(".xml","_RELEASE")
+            builderIOCs[ioc] = list()
+            builderIOCs[ioc].append(builderReleaseFile)
 
-        if iocBootScriptPath.find('linux') > -1:
-            iocArch = "Linux"
-        else:
-            iocArch = "vxWorks"
-        builderIOCs[ioc].append(iocArch)
+            if iocBootScriptPath.find('linux') > -1:
+                iocArch = "Linux"
+            else:
+                iocArch = "vxWorks"
+            builderIOCs[ioc].append(iocArch)
 
-        basePath = iocBootScriptPath.split("bin")[0]
-        builderIOCs[ioc].append(basePath)
+            basePath = iocBootScriptPath.split("bin")[0]
+            builderIOCs[ioc].append(basePath)
+
+            if(basePath.find("work") == -1):
+                builderIOCs[ioc].append(basePath.split('/')[-2])
+            else:
+                builderIOCs[ioc].append("work")
+
+        except:
+            print(f"{ioc} not configured")
 
     return builderIOCs
 
@@ -129,6 +143,7 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
             builder = True
             releaseFile = builderIOCS[ioc][0]
             iocArch = builderIOCS[ioc][1]
+            iocRelease = builderIOCS[ioc][3]
         # If we are to use the work version of the ioc modify the release file accordingly.
         if args.work and not workIOC:
             if not builder:

@@ -1,0 +1,19 @@
+CALC=		$(SUPPORT)/calc/3-1
+GENSUB=     $(SUPPORT)/genSub/1-8dls3
+ASYN=		$(SUPPORT)/asyn/4-31
+STREAMDEVICE=	$(SUPPORT)/streamDevice/2-5dls5
+FINS=       $(SUPPORT)/FINS/3-7-1
+VACUUMSPACE=		$(SUPPORT)/vacuumSpace/4-6
+VALVE=      $(SUPPORT)/dlsPLC/2-3-6
+GAUGE=        $(SUPPORT)/mks937a/2-90
+MPC=        $(SUPPORT)/digitelMpc/5-25
+RGA=        $(SUPPORT)/rga/4-17-1
+RACKFAN=    $(SUPPORT)/rackFan/2-10
+IOCINFO=    $(SUPPORT)/IOCinfo/4-1-1
+DEVIOCSTATS=$(SUPPORT)/devIocStats/3-1-14dls2-6
+BUSY=       $(SUPPORT)/busy/1-6-1dls1
+AUTOSAVE=   $(SUPPORT)/autosave/5-0dls6
+
+
+
+
