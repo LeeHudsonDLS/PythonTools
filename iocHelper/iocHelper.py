@@ -87,7 +87,9 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
         iocType = ioc.split('-')[1]
         iocNumber = ioc.split('-')[3]
         outputList = list()
-
+        FEDep = False
+        feMasterConfigDep = False
+        FERelease = ""
         if ioc not in builderIOCS.keys():
             builder = False
             stdout = Popen(f"configure-ioc s {ioc}",shell=True,stdout=PIPE).stdout.read().decode()
@@ -158,11 +160,51 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
         #If using feMasterConfig we must look here for the release file, not in the IOC
         #List all includes that contain feMasterConfig (should be 2)
         stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep MasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
-        if stdout[0].find('MasterConfig') == -1:
+        if stdout[0].find('MasterConfig') != -1:
+            feMasterConfigDep = True
+
+        stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep /FE/",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+        if stdout[0].find('FE') != -1:
+            FEDep = True
+
+        if not feMasterConfigDep and not FEDep:
             stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
             supportModuleRelease = stdout[-1].strip('\n')
             masterConfigRelease = 'N/A'
-        else:
+        elif FEDep:
+            stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep /FE/",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+            if stdout[0].find("work") == -1:
+                if builder:
+                    FERelease = stdout[0].split('/')[-1]
+                else:
+                    FERelease = stdout[1].split('/')[-3]
+            else:
+                FERelease = "work"
+            
+            if builder:
+                
+                commonReleaseFile = f"/dls_sw/prod/R3.14.12.7/support/FE/{FERelease}/configure/RELEASE"
+                if stdout.__len__() > 2:
+                    platformReleaseFile = stdout[stdout.__len__()-2].replace("include ","")
+            else:
+                commonReleaseFile = stdout[1].replace("include ","")
+                platformReleaseFile = stdout[2].replace("include ","")
+
+            masterConfigRelease = 'N/A'
+            commonReleaseFileCont = Popen(f"cat {commonReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+
+            if len(platformReleaseFile) > 1:
+                platformReleaseFileCont = Popen(f"cat {platformReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
+            else:
+                platformReleaseFileCont = ""
+
+            if  len(commonReleaseFileCont) > 1:
+                supportModuleRelease = commonReleaseFileCont[-1].strip('\n')
+            else:
+                supportModuleRelease = platformReleaseFileCont[-1].strip('\n')
+
+        elif feMasterConfigDep:
+            stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep MasterConfig",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
             if stdout[0].find("work") == -1:
                 masterConfigRelease = stdout[0].split('/')[-3]
             else:
