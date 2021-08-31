@@ -190,7 +190,7 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
                 commonReleaseFile = stdout[1].replace("include ","")
                 platformReleaseFile = stdout[2].replace("include ","")
 
-            masterConfigRelease = 'N/A'
+            masterConfigRelease = FERelease
             commonReleaseFileCont = Popen(f"cat {commonReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
 
             if len(platformReleaseFile) > 1:
