@@ -79,39 +79,64 @@ def listModulerVersions(iocListFileName,vers):
             workIOCPath = baseIOCPath.replace(f'{iocRelease}/','')
             workIOCPath = workIOCPath.replace('prod','work')
             releaseFile = workIOCPath + "configure/RELEASE"
+            Popen(f"rm {releaseFile}.temp",shell=True,stdout=PIPE,stderr=PIPE)
         
         releaseFileContents = Popen(f"cat {releaseFile}",shell=True,stdout=PIPE).stdout.read().decode()
-        commonRelease = releaseFileContents.split('\n')[1]
-        archRelease = releaseFileContents.split('\n')[2]
-
-        
 
         # Print release file
         if(args.print):
-            print(f"{releaseFile}")
-            print(f"\t{commonRelease}")
-            print(f"\t{archRelease}")
+            print(f"{releaseFile}:")
+            #print(len(releaseFileContents.split("\n")))
+            #print(f"\t{releaseFileContents}")
+            for line in releaseFileContents.split('\n'):
+                print(f"\t{line}")
+            #print(f"\t{archRelease}")
         else:
+            fin = open(releaseFile, "rt")
+            fout = open(f"{releaseFile}.temp", "wt")
             if vers == "work" or vers == "w":
-                commonRelease = "include /dls_sw/work/R3.14.12.7/support/feMasterConfig/configure/FE_COMMON_RELEASE"
-                if iocArch == "Linux":
-                    archRelease = "include /dls_sw/work/R3.14.12.7/support/feMasterConfig/configure/FE_LINUX_RELEASE"
-                else:
-                    archRelease = "include /dls_sw/work/R3.14.12.7/support/feMasterConfig/configure/FE_VXWORKS_RELEASE"
+                for line in fin:
+                    if line.find('prod') > -1 or line.find('SUPPORT') > -1:
+                        releaseStart=line.find('/',line.find("FE",3))+1
+                        if line.find('/',releaseStart) > -1:
+                            releaseEnd = line.find('/',releaseStart)
+                        else:
+                            releaseEnd = line.find('\n',releaseStart)
+                        
+                        
+                        releaseStr = "/"+line[releaseStart:releaseEnd]
+
+                        output = line.replace('prod','work')
+                        output = output.replace('SUPPORT','WORK')
+                        output = output.replace(releaseStr, '')
+                        fout.write(output)
             else:
-                commonRelease = f"include /dls_sw/prod/R3.14.12.7/support/feMasterConfig/{vers}/configure/FE_COMMON_RELEASE"
-                if iocArch == "Linux":
-                    archRelease = f"include /dls_sw/prod/R3.14.12.7/support/feMasterConfig/{vers}/configure/FE_LINUX_RELEASE"
-                else:
-                    archRelease = f"include /dls_sw/prod/R3.14.12.7/support/feMasterConfig/{vers}/configure/FE_VXWORKS_RELEASE"
+                for line in fin:
+                    if line.find('prod') > -1 or line.find('SUPPORT') > -1:
+                        releaseStart=line.find('/',line.find("FE",3))+1
+                        if line.find('/',releaseStart) > -1:
+                            releaseEnd = line.find('/',releaseStart)
+                        else:
+                            releaseEnd = line.find('\n',releaseStart)
+                        
+                        
+                        releaseStr = line[releaseStart:releaseEnd]
+                        output = line.replace(releaseStr, vers)
+                        output = output.replace('//','/')
+                        fout.write(output)
+                    else:
+                        output = line.replace('work','prod')
+                        output = output.replace('WORK','SUPPORT')
+                        output = output.replace("/FE","/FE/"+vers)
+                        fout.write(output)
+                        
+ 
+            fin.close()
+            fout.close()
+            Popen(f"mv {releaseFile}.temp {releaseFile}",shell=True,stdout=PIPE)
+
             
-            for line in fileinput.input(releaseFile,inplace=True):
-                if "FE_COMMON" in line:
-                    print('{}'.format(commonRelease), end='\n')
-                elif "FE_LINUX" in line or "FE_VXWORKS" in line:
-                    print('{}'.format(archRelease), end='\n')
-                else:
-                    print('{}'.format(line), end='')
+            
 
 
 parser = argparse.ArgumentParser()
