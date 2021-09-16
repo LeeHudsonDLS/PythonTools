@@ -91,6 +91,15 @@ def listModulerVersions(iocListFileName,vers):
             for line in releaseFileContents.split('\n'):
                 print(f"\t{line}")
             #print(f"\t{archRelease}")
+        elif (args.revert):
+            print("Reverting")
+            if(ioc in builderIOCS):
+                print(f"Reverting {workIOCPath}/{ioc}_RELEASE")
+                Popen(f"git -C {workIOCPath} checkout {ioc}_RELEASE",shell=True,stdout=PIPE,stderr=PIPE)
+            else:
+                print(f"Reverting {workIOCPath}configure/RELEASE")
+                Popen(f"git -C {workIOCPath} checkout configure/RELEASE",shell=True,stdout=PIPE)
+
         else:
             fin = open(releaseFile, "rt")
             fout = open(f"{releaseFile}.temp", "wt")
@@ -142,11 +151,12 @@ def listModulerVersions(iocListFileName,vers):
 parser = argparse.ArgumentParser()
 parser.add_argument("vers", nargs='?',help="Version of feMasterConfig to update to")
 parser.add_argument('-p','--print',action='store_true',help="Just print the current trimmed down RELEASE file")
+parser.add_argument('-r','--revert',action='store_true',help="Revert changes by doing git checkout RELEASE")
 parser.add_argument('-i',dest="ioc",nargs='?', help="If you only want to change a single IOC, use this argument with the IOC name", default="A")
 
 args=parser.parse_args()
 
-if args.vers == None and args.print == False:
+if args.vers == None and args.print == False and args.revert == False:
     print("Please specify the version of feMasterConfig")
     quit()
 
