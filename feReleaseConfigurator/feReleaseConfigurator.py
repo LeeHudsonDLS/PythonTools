@@ -86,19 +86,21 @@ def listModulerVersions(iocListFileName,vers):
         # Print release file
         if(args.print):
             print(f"{releaseFile}:")
-            #print(len(releaseFileContents.split("\n")))
-            #print(f"\t{releaseFileContents}")
             for line in releaseFileContents.split('\n'):
                 print(f"\t{line}")
-            #print(f"\t{archRelease}")
         elif (args.revert):
             print("Reverting")
             if(ioc in builderIOCS):
                 print(f"Reverting {workIOCPath}/{ioc}_RELEASE")
-                Popen(f"git -C {workIOCPath} checkout {ioc}_RELEASE",shell=True,stdout=PIPE,stderr=PIPE)
+                Popen(f"git -C {workIOCPath} checkout {ioc}_RELEASE",shell=True,stdout=PIPE)
             else:
                 print(f"Reverting {workIOCPath}configure/RELEASE")
                 Popen(f"git -C {workIOCPath} checkout configure/RELEASE",shell=True,stdout=PIPE)
+        elif (args.status):
+            print(f"{workIOCPath}:")
+            if(ioc not in builderIOCS):
+                for line in Popen(f"git -C {workIOCPath} status -s",shell=True,stdout=PIPE).stdout.read().decode().split('\n'):
+                    print(f"\t{line}")
 
         else:
             fin = open(releaseFile, "rt")
@@ -152,11 +154,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("vers", nargs='?',help="Version of feMasterConfig to update to")
 parser.add_argument('-p','--print',action='store_true',help="Just print the current trimmed down RELEASE file")
 parser.add_argument('-r','--revert',action='store_true',help="Revert changes by doing git checkout RELEASE")
+parser.add_argument('-s','--status',action='store_true',help="Show result of git status in IOC dir")
 parser.add_argument('-i',dest="ioc",nargs='?', help="If you only want to change a single IOC, use this argument with the IOC name", default="A")
 
 args=parser.parse_args()
 
-if args.vers == None and args.print == False and args.revert == False:
+if args.vers == None and args.print == False and args.revert == False and args.status == False:
     print("Please specify the version of feMasterConfig")
     quit()
 
