@@ -111,12 +111,19 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
                 fullDirStructure = True
 
             if(fullDirStructure):
-                stdout = stdout.split(f"{ioc}")
-                iocRelease = stdout[2].split('/')[1]
-                iocArch = stdout[2].split('/')[3][0:7]
-                aa = iocArch.find('linux')
-                if iocArch.find('linux') > -1:
+
+                if stdout.find('linux') > -1:
                     iocArch = "Linux"
+                else:
+                    iocArch = "vxWorks"
+
+                stdout = stdout.split(f"{ioc}")
+                if(workIOC):
+                    iocRelease = "work"
+                else:
+                    iocRelease = stdout[2].split('/')[1]
+                
+                
                 if(workIOC):
                     baseIOCPath = stdout[1] + ioc + '/'
                 else:
@@ -227,13 +234,14 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
 
         # Check if the module is actually used in this IOC:
         #print(f"{ioc}")
-        if ioc not in builderIOCS.keys():
-            stdout = Popen(f"cat {baseIOCPath}db/{ioc}.db | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode()
-        else:
-            stdout = Popen(f"cat {builderIOCS[ioc][2]}db/{ioc}_expanded.db | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode()
 
-        if(len(stdout)==0):
-            supportModuleRelease = ''
+        #if ioc not in builderIOCS.keys():
+            #stdout = Popen(f"cat {baseIOCPath}db/{ioc}.db | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode()
+        #else:
+            #stdout = Popen(f"cat {builderIOCS[ioc][2]}db/{ioc}_expanded.db | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode()
+
+        #if(len(stdout)==0):
+            #supportModuleRelease = ''
 
 
         outputList.append(f"{ioc}")
