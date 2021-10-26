@@ -179,7 +179,7 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
             supportModuleRelease = stdout[-1].strip('\n')
             masterConfigRelease = 'N/A'
         elif FEDep:
-            stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep /FE/",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
+            stdout = Popen(f"cat {releaseFile} | grep ^[^#] | grep -e /FE/ -e FE=",shell=True,stdout=PIPE).stdout.read().decode().split('\n')
             if stdout[0].find("work") == -1:
                 if builder:
                     FERelease = stdout[0].split('/')[-1]
@@ -188,6 +188,8 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
             else:
                 FERelease = "work"
             
+   
+
             if builder:
                 
                 commonReleaseFile = f"/dls_sw/prod/R3.14.12.7/support/FE/{FERelease}/configure/RELEASE"
@@ -197,9 +199,11 @@ def listModulerVersions(iocListFileName,supportModule,latestRelease):
                 commonReleaseFile = stdout[1].replace("include ","")
                 platformReleaseFile = stdout[2].replace("include ","")
 
+
             masterConfigRelease = FERelease
             commonReleaseFileCont = Popen(f"cat {commonReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
 
+            
             if len(platformReleaseFile) > 1:
                 platformReleaseFileCont = Popen(f"cat {platformReleaseFile} | grep ^[^#] | grep {supportModule}",shell=True,stdout=PIPE).stdout.read().decode().split('/')
             else:
