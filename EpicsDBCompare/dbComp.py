@@ -79,6 +79,10 @@ for index, arg in enumerate(databaseFiles):
                 noOfRecords += 1
                 inRecord = True
 
+
+
+recordlist = [r.replace(', "', ',"') for r in recordlist]
+
 recordlist.sort()
 
 for record in recordInstances:

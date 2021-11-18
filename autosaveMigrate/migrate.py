@@ -18,27 +18,33 @@ if len(sys.argv[1]) < 3:
         print "Usage python migrate.py [AUTOSAVE_PATH]"
         print "For example python migrate.py /dls_sw/i04/epics/autosave/BL04I-VA-IOC-01"
     quit()
+
+if sys.argv[2] == "-d":
+    developmentMode = 1
+else:
+    developmentMode = 0
         
 
 # Get the first argument and split it like a path
 argument = sys.argv[1].split('/')
 
-# Check the splitted argument looks like an autosave path
-if argument[1] != "dls_sw":
-    print "Invalid autosave path"
-    quit()
+if developmentMode == 0:
+    # Check the splitted argument looks like an autosave path
+    if argument[1] != "dls_sw":
+        print "Invalid autosave path"
+        quit()
 
-if argument[3] != "epics":
-    print "Invalid autosave path"
-    quit()
-    
-if argument[4] != "autosave":
-    print "Invalid autosave path"
-    quit()
+    if argument[3] != "epics":
+        print "Invalid autosave path"
+        quit()
+        
+    if argument[4] != "autosave":
+        print "Invalid autosave path"
+        quit()
 
 # Find the part of the argument that specifies IOC name
 for a in argument:
-    if a[:2] == "BL":
+    if a[:2] == "BL" or "FE":
         IOC = a
 
 fileExtensions=["*.sav","*.sav0","*.sav1","*.sav2","*.savB"]
@@ -51,6 +57,7 @@ os.chdir(sys.argv[1])
 # copy the file but replace the beamline characters (BL04I) for example with
 # the IOC name, so BL04I_0.sav0 is copied to BL04I-MO-IOC-01_0.sav0
 for extension in fileExtensions:
+    debugGlob = glob.glob(extension)
     for file in glob.glob(extension):
         if IOC in file:
             # Check if the migration has already been performed
@@ -58,10 +65,6 @@ for extension in fileExtensions:
             quit()
         originalFile.append(file)
 
-
-if len(originalFile) != 15:
-    print "Not correct amount of original files"
-    quit()
 
 for file in originalFile:
         copyfile(file,file.replace(file[:5],IOC))
