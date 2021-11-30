@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["-a","FE","-l"],
+            "args": ["/scratch/autosave/FE15I-CS-IOC-01","-d"],
             "console": "integratedTerminal"
         }
     ]
