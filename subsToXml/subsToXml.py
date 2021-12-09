@@ -12,7 +12,26 @@ parser.add_argument("file",nargs='?', help="Path to substitution file", default=
 args=parser.parse_args()
 
 needsNameField = ['mks937a','mks937aGauge','digitelMpc']
+needsPortLookup = {'mks937aImg':'GCTLR',
+                   'mks937aPirg':'GCTLR',
+                   'digitelMpcIonp':'MPC'}
 asynPortDevice = ['mks937a','digitelMpc']
+
+# Uses original class name, not the one derived from classNameLookup
+unusedFields = {'digitelMpcIonp':['unit'],
+                'dlsPLC_read100':['fins_timeout']}
+
+
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean']
+
+classNameLookup = {'dlsPLC_read100':'read100',
+                   'space':'spaceTemplate',
+                   'dlsPLC_vacValveDebounce':'vacValveDebounce',
+                   'dlsPLC_vacValveGroup':'vacValveGroup'}
+
+
+#{'ty_40_0':'GCTLR_S_01',
+# 'ty_40_1':'GCTLR_A_01'}
 portLookup = dict()
 
 
@@ -43,10 +62,14 @@ def extractPattern(substitutionString,fileNameNoExt):
     for token in removeFromPattern:
         patternSubString = patternSubString.replace(token,'')
 
+    if fileNameNoExt in needsPortLookup.keys():
+        patternSubString = patternSubString.replace('port',needsPortLookup[fileNameNoExt])
 
     pattern = patternSubString.split()
     if fileNameNoExt in needsNameField:
         pattern.insert(0,'name')
+
+
 
     return pattern
 
@@ -70,12 +93,13 @@ def extractInstancesIntoList(substitutionString,fileNameNoExt):
         name = getName(instance,fileNameNoExt)
         result[i]=f"{name} {instance.strip()}"
         
+
     return result
 
 def getModuleName(templateName):
     builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean"],
                           'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup"],
-                          'rga':["rga"],
+                          'rga':["rga",'rgaGroup'],
                           'vacuumSpace':["space"],
                           'rackFan':["rackFan"],
                           'Hy8401ip':["Hy8401ip"],
@@ -89,12 +113,15 @@ def getModuleName(templateName):
 
 def getClassName(fileNameNoExt):
 
-    autoClassList = ['Hy8401ip']
+
     
     if fileNameNoExt in autoClassList:
         return f"auto_{fileNameNoExt}"
-    else:
-        return fileNameNoExt
+    
+    if fileNameNoExt in classNameLookup.keys():
+        return classNameLookup[fileNameNoExt]
+    
+    return fileNameNoExt
 
 fileInstanceDict = dict()
 
@@ -148,6 +175,13 @@ for fileInstance in fileInstanceDict:
     fileNameNoExt=fileName.split('.')[0]
 
     patternList = extractPattern(template,fileNameNoExt)
+
+    # Determine the field location of the port
+    if fileNameNoExt in needsPortLookup:
+        for i, field in enumerate(patternList):
+            if patternList[i] == needsPortLookup[fileNameNoExt]:
+                portElementNumber = i
+
     instList = extractInstancesIntoList(template,fileNameNoExt)
 
     for instance in instList:
@@ -155,10 +189,20 @@ for fileInstance in fileInstanceDict:
         instanceValues = instance.split()
 
         if fileNameNoExt in asynPortDevice:
-            portLookup[instanceValues[0]] = instanceValues[getPortElementNumber(instanceValues)]      
+            portLookup[instanceValues[getPortElementNumber(instanceValues)]] =  instanceValues[0]  
+
+        if fileNameNoExt in needsPortLookup.keys():
+            instanceValues[portElementNumber] = portLookup[instanceValues[portElementNumber]]
+
+        if fileNameNoExt in unusedFields.keys():
+            for i, field in enumerate(patternList):
+                if patternList[i] in unusedFields[fileNameNoExt]:
+                    patternList[i] = ''
+                    instanceValues[i] = ''
 
         for i,p in zip(instanceValues,patternList):
-            xmlString += f'{p}="{i}" '
+            if len(p) > 0:
+                xmlString += f'{p}="{i}" '
         xmlString += "/>"
         print(xmlString)
 print("here")
