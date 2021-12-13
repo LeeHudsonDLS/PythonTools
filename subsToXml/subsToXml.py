@@ -11,6 +11,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("file",nargs='?', help="Path to substitution file", default="/dls_sw/work/R3.14.12.7/ioc/SR24C/VA/SR24C-VA-IOC-01App/Db/SR24C-VA-IOC-01.substitutions")
 args=parser.parse_args()
 
+# List of non builder classes, need manual intervention
+notSupported = list()
+
 needsNameField = ['mks937a','mks937aGauge','digitelMpc']
 needsPortLookup = {'mks937aImg':'GCTLR',
                    'mks937aPirg':'GCTLR',
@@ -19,10 +22,11 @@ asynPortDevice = ['mks937a','digitelMpc']
 
 # Uses original class name, not the one derived from classNameLookup
 unusedFields = {'digitelMpcIonp':['unit'],
-                'dlsPLC_read100':['fins_timeout']}
+                'dlsPLC_read100':['fins_timeout'],
+                'ChannelUn':['nelm','card','channel']}
 
 
-autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean']
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Master16','Channel16','ChannelUn']
 
 classNameLookup = {'dlsPLC_read100':'read100',
                    'space':'spaceTemplate',
@@ -103,6 +107,7 @@ def getModuleName(templateName):
                           'vacuumSpace':["space"],
                           'rackFan':["rackFan"],
                           'Hy8401ip':["Hy8401ip"],
+                          'FastVacuum':["Master16","Channel16","ChannelUn"],
                           'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup"]}
 
     for module in builderClassLookup:
@@ -204,5 +209,14 @@ for fileInstance in fileInstanceDict:
             if len(p) > 0:
                 xmlString += f'{p}="{i}" '
         xmlString += "/>"
-        print(xmlString)
+        if(xmlString[1] == '.'):
+            notSupported.append(xmlString)
+        else:
+            print(f"\t{xmlString}")
+
+
+print("\nNot supported: ")
+for instance in notSupported:
+    print(instance)
+
 print("here")
