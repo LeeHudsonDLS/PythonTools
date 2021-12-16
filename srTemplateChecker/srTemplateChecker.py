@@ -8,6 +8,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-b','--boots',action='store_true')
 parser.add_argument("file",nargs='?', help="Which template file in the sub are you looking for?", default="mks937a.template")
 args=parser.parse_args()
 
@@ -15,16 +16,23 @@ args=parser.parse_args()
 getIOCPathString = "configure-ioc list | grep ^SR[0-2][0-9]C-VA-IOC-01 | grep vxWorks"
 
 iocSubFileList = list()
+iocBootFileList = list()
 commonality = dict()
+asynCommonality = dict()
 fileInstanceList = dict()
 fileInstanceListRaw = dict()
+asynPortList = dict()
 
 # Get list of substitution files
 for redirectorOp in Popen(getIOCPathString,shell=True,stdout=PIPE).stdout.read().decode().split('\n'):
     try:
         ioc = redirectorOp.split()[0]
         path = redirectorOp.split()[1].split("bin/")[0]
+        iocBootFile = f"{path}iocBoot/ioc{ioc}/st{ioc}.src"
         iocSubFileList.append(f"{path}{ioc}App/Db/{ioc}.substitutions")
+        iocBootFileList.append(iocBootFile)
+        asynPortList[ioc[0:4]]=Popen(f"cat {iocBootFile} | grep drvAsynSerialPortConfigure",shell=True,stdout=PIPE).stdout.read().decode().replace(' ','')
+        
     except:
         pass
 
@@ -74,15 +82,31 @@ for fi in fileInstanceListRaw:
         commonality[fileInstanceText]=list()
         commonality[fileInstanceText].append(fi)
 
+for asynInstance in asynPortList:
+    asynText = asynPortList[asynInstance]
+    if asynText in asynCommonality:
+        asynCommonality[asynText].append(asynInstance)
+    else:
+        asynCommonality[asynText]=list()
+        asynCommonality[asynText].append(asynInstance)
 
 
-
-for config in commonality:
-    cells = ""
-    cell=commonality[config][0]
-    for cell in commonality[config]:
-        cells += f"{cell} "
-    cells += ':'
-    print(cells)
-    print(fileInstanceList[cell])
         
+if args.boots:
+    for config in asynCommonality:
+        cells = ""
+        for cell in asynCommonality[config]:
+            cells += f"{cell} "
+        cells += ':'
+        print(cells)
+        cell=asynCommonality[config][0]
+        print(config)
+else:
+    for config in commonality:
+        cells = ""
+        for cell in commonality[config]:
+            cells += f"{cell} "
+        cells += ':'
+        print(cells)
+        cell=commonality[config][0]
+        print(fileInstanceList[cell])

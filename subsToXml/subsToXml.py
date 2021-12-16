@@ -14,6 +14,9 @@ args=parser.parse_args()
 # List of non builder classes, need manual intervention
 notSupported = list()
 
+# Character to replace single spaces for to avoid them being stripped
+subChar = '*'
+
 needsNameField = ['mks937a','mks937aGauge','digitelMpc']
 needsPortLookup = {'mks937aImg':'GCTLR',
                    'mks937aPirg':'GCTLR',
@@ -26,11 +29,12 @@ unusedFields = {'digitelMpcIonp':['unit'],
                 'ChannelUn':['nelm','card','channel']}
 
 
-autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Master16','Channel16','ChannelUn']
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Master16','Channel16','ChannelUn','psu24vStatus']
 
 classNameLookup = {'dlsPLC_read100':'read100',
                    'space':'spaceTemplate',
                    'dlsPLC_vacValveDebounce':'vacValveDebounce',
+                   'FINS':'FINSTemplate',
                    'dlsPLC_vacValveGroup':'vacValveGroup'}
 
 
@@ -77,24 +81,37 @@ def extractPattern(substitutionString,fileNameNoExt):
 
     return pattern
 
+def replaceSingleQuotes(input):
+    
+    input = input.replace('""','*')
+    input = input.replace('"','')
+    input = input.replace('*','""')
+
+    return input
+
 # Returns list of stings describing the field values separated by whitespace, eg:
 # result[0] = 'SR24S-VA-GCTLR-01   ty_40_0'
 # result[1] = 'SR24S-VA-GCTLR-01   ty_40_1'
 def extractInstancesIntoList(substitutionString,fileNameNoExt):
 
 
-    removeFromInstance = ["\n","\t","}",'"']
+    removeFromInstance = ["\n","\t","}"]
 
     result = substitutionString.split('{')
     result = result[3:]
     for i, instance in enumerate(result):
         for token in removeFromInstance:
             instance = instance.replace(token,'')
+        instance = replaceSingleQuotes(instance)
         instance = instance.replace(',',' ')
         instance = instance.replace('&', "&amp;")
         
         # Gets name field if needed
         name = getName(instance,fileNameNoExt)
+
+        # Replace single spaces with subChar to avoid them getting stripped
+        instance = re.sub(r'(?<=\S)\s(?=\S)',subChar,instance.strip())
+
         result[i]=f"{name} {instance.strip()}"
         
 
@@ -108,6 +125,9 @@ def getModuleName(templateName):
                           'rackFan':["rackFan"],
                           'Hy8401ip':["Hy8401ip"],
                           'FastVacuum':["Master16","Channel16","ChannelUn"],
+                          'FINS':["FINS"],
+                          'TimingTemplates':["defaultEVR"],
+                          'SR-VA':["psu24vStatus"],
                           'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup"]}
 
     for module in builderClassLookup:
@@ -207,8 +227,10 @@ for fileInstance in fileInstanceDict:
 
         for i,p in zip(instanceValues,patternList):
             if len(p) > 0:
-                xmlString += f'{p}="{i}" '
+                temp = i.replace(subChar,' ')
+                xmlString += f'{p}="{temp}" '
         xmlString += "/>"
+        xmlString = xmlString.replace('""""','""')
         if(xmlString[1] == '.'):
             notSupported.append(xmlString)
         else:
@@ -218,5 +240,3 @@ for fileInstance in fileInstanceDict:
 print("\nNot supported: ")
 for instance in notSupported:
     print(instance)
-
-print("here")
