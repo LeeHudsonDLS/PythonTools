@@ -8,7 +8,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("file",nargs='?', help="Path to substitution file", default="/dls_sw/work/R3.14.12.7/ioc/SR24C/VA/SR24C-VA-IOC-01App/Db/SR24C-VA-IOC-01.substitutions")
+parser.add_argument("file",nargs='?', help="Path to substitution file", default="/dls_sw/work/R3.14.12.7/ioc/SR20C/VA/SR20C-VA-IOC-01App/Db/SR20C-VA-IOC-01.substitutions")
 args=parser.parse_args()
 
 # List of non builder classes, need manual intervention
@@ -29,7 +29,7 @@ unusedFields = {'digitelMpcIonp':['unit'],
                 'ChannelUn':['nelm','card','channel']}
 
 
-autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Master16','Channel16','ChannelUn','psu24vStatus']
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16','ChannelUn','psu24vStatus','dlsPLC_CommsStatus']
 
 classNameLookup = {'dlsPLC_read100':'read100',
                    'space':'spaceTemplate',
@@ -103,7 +103,7 @@ def extractInstancesIntoList(substitutionString,fileNameNoExt):
         for token in removeFromInstance:
             instance = instance.replace(token,'')
         instance = replaceSingleQuotes(instance)
-        instance = instance.replace(',',' ')
+        instance = instance.replace(',','  ')
         instance = instance.replace('&', "&amp;")
         
         # Gets name field if needed
@@ -119,7 +119,7 @@ def extractInstancesIntoList(substitutionString,fileNameNoExt):
 
 def getModuleName(templateName):
     builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean"],
-                          'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup"],
+                          'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup","digitelMpcqTsp"],
                           'rga':["rga",'rgaGroup'],
                           'vacuumSpace':["space"],
                           'rackFan':["rackFan"],
@@ -128,7 +128,8 @@ def getModuleName(templateName):
                           'FINS':["FINS"],
                           'TimingTemplates':["defaultEVR"],
                           'SR-VA':["psu24vStatus"],
-                          'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup"]}
+                          'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup","dlsPLC_CommsStatus"],
+                          'IOCinfo':["IOCinfo"]}
 
     for module in builderClassLookup:
         if templateName in builderClassLookup[module]:
@@ -208,6 +209,8 @@ for fileInstance in fileInstanceDict:
                 portElementNumber = i
 
     instList = extractInstancesIntoList(template,fileNameNoExt)
+
+
 
     for instance in instList:
         xmlString = f"<{getModuleName(fileNameNoExt)}.{getClassName(fileNameNoExt)} "
