@@ -17,25 +17,44 @@ notSupported = list()
 # Character to replace single spaces for to avoid them being stripped
 subChar = '*'
 
-needsNameField = ['mks937a','mks937aGauge','digitelMpc']
+needsNameField = ['mks937a','mks937b','mks937aGauge','mks937bGauge','digitelMpc']
 needsPortLookup = {'mks937aImg':'GCTLR',
                    'mks937aPirg':'GCTLR',
+                   'mks937bImg':'GCTLR',
+                   'mks937bPirg':'GCTLR',
                    'digitelMpcIonp':'MPC'}
-asynPortDevice = ['mks937a','digitelMpc']
+asynPortDevice = ['mks937a','digitelMpc','mks937b']
 
 # Uses original class name, not the one derived from classNameLookup
 unusedFields = {'digitelMpcIonp':['unit'],
                 'dlsPLC_read100':['fins_timeout'],
+                'mks937bImg':['address','port'],
+                'mks937bPirg':['address'],
+                'mks937bRelays':['address','port','device'],
+                'mks937bFastRelay':['address','port','device','channel'],
+                'frontendValveSNL':['abdelay','fvdelay','absb'],
+                'dlsPLC_feTemperature':['port'],
+                'dlsPLC_vacValveTclose':['port'],
+                'dlsPLC_vacPump':['valve','fins_timeout'],
+                'dlsPLC_vacValveDebounce':['fins_timeout','tclose_hihi','tclose_hhsv','tclose_hsv','tclose_high'],
                 'ChannelUn':['nelm','card','channel']}
 
-
-autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16','ChannelUn','psu24vStatus','dlsPLC_CommsStatus']
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16','Channel8','ChannelUn','psu24vStatus','dlsPLC_CommsStatus','dlsPLC_feFastValve','frontendValveSNL','beamline_access','ValveSequencer','BLFEControl','dlsPLC_vacValveTclose','dlsPLC_digio','dlsPLC_radmonreset','dlsPLC_mpsPermit','valveArchiver']
 
 classNameLookup = {'dlsPLC_read100':'read100',
                    'space':'spaceTemplate',
+                   'space_b':'space_bTemplate',
                    'dlsPLC_vacValveDebounce':'vacValveDebounce',
                    'FINS':'FINSTemplate',
-                   'dlsPLC_vacValveGroup':'vacValveGroup'}
+                   'flowmeter':'flowMeter',
+                   'dlsPLC_vacValveGroup':'vacValveGroup',
+                   'dlsPLC_vacPump':'vacPump',
+                   'dlsPLC_feTemperature':'feTemperature',
+                   'dlsPLC_feFastValve':'feFastValve',
+                   'insulation_vac_space':'FE24B_insulation_vac_space',
+                   'vacuumSpaceOverrides':'FE24B_vacuumSpaceOverrides',
+                   'dig':'FE24B_dig',
+                   'customCombGauge':'FE24B_customCombGauge'}
 
 
 #{'ty_40_0':'GCTLR_S_01',
@@ -46,10 +65,10 @@ portLookup = dict()
 # Returns string describing the a suitable name for the device
 def getName(instance,fileNameNoExt):
     name = ''
-    if fileNameNoExt == 'mks937a':
+    if fileNameNoExt == 'mks937a' or fileNameNoExt == 'mks937b':
         device = instance.strip().split()[0]
         name = f"GCTLR_{device[4]}_{device[-2:]}"
-    if fileNameNoExt == 'mks937aGauge':
+    if fileNameNoExt == 'mks937aGauge' or fileNameNoExt == 'mks937bGauge':
         dom = instance.strip().split()[0]
         id = instance.strip().split()[1]
         name = f"GAUGE_{dom[-1]}_{id}"
@@ -119,16 +138,18 @@ def extractInstancesIntoList(substitutionString,fileNameNoExt):
 
 def getModuleName(templateName):
     builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean"],
+                          'mks937b':["mks937b","mks937bGauge","mks937bImg","mks937bPirg","mks937bRelays","mks937bFastRelay","mks937bGaugeGroup","mks937bImgGroup","mks937bPirgGroup","mks937bImgMean"],
                           'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup","digitelMpcqTsp"],
                           'rga':["rga",'rgaGroup'],
-                          'vacuumSpace':["space"],
+                          'vacuumSpace':["space","space_b"],
                           'rackFan':["rackFan"],
                           'Hy8401ip':["Hy8401ip"],
-                          'FastVacuum':["Master16","Channel16","ChannelUn"],
+                          'FE':["frontendValveSNL","beamline_access","ValveSequencer","BLFEControl","flowmeter","valveArchiver","insulation_vac_space","vacuumSpaceOverrides","customCombGauge","dig"],
+                          'FastVacuum':["Master16","Channel16","Channel8","ChannelUn"],
                           'FINS':["FINS"],
                           'TimingTemplates':["defaultEVR"],
                           'SR-VA':["psu24vStatus"],
-                          'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup","dlsPLC_CommsStatus"],
+                          'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup","dlsPLC_CommsStatus","dlsPLC_feFastValve","dlsPLC_feTemperature","dlsPLC_vacValveTclose",'dlsPLC_radmonreset','dlsPLC_digio','dlsPLC_mpsPermit','dlsPLC_vacPump'],
                           'IOCinfo':["IOCinfo"]}
 
     for module in builderClassLookup:
@@ -190,6 +211,8 @@ for line in lines:
 def getPortElementNumber(instanceValues):
     for i, instance in enumerate(instanceValues):
         if 'ty_' in instance:
+            return i
+        if 'ts' in instance:
             return i
     return -1
 
