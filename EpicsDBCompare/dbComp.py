@@ -40,7 +40,10 @@ recordInstances = {
 
 blGuiRecordPrefix = [':MTYPE',':NCURR',':NFLOW',':NTEMP',':DEVSTA',':MOTORSTA',':CURRSTA',':FLOWSTA','TEMPSTA']
 
-localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
+if len(sys.argv) < 3:
+    localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
+    
+
 databaseFiles = list()
 for x in localFiles:
     if os.path.splitext(x)[1] == ".db" or os.path.splitext(x)[1] == ".template" or os.path.splitext(x)[1] == ".vdb":
@@ -63,6 +66,9 @@ for index, arg in enumerate(databaseFiles):
             if "I/O Intr" in x:
                 noOfIOIntr += 1
             if "}" in x:
+                recordFirstLine = recordString.split('\n')[0]
+                if '{' in recordFirstLine:
+                    recordString=recordString.replace("{","\n{")
                 recordlist.append(recordString)
                 recordString = ""
                 inRecord = False 
