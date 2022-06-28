@@ -17,12 +17,15 @@ notSupported = list()
 # Character to replace single spaces for to avoid them being stripped
 subChar = '*'
 
-needsNameField = ['mks937a','mks937b','mks937aGauge','mks937bGauge','digitelMpc']
+needsNameField = ['mks937a','mks937b','mks937aGauge','mks937bGauge','digitelMpc','mks937bImg','mks937bPirg']
 needsPortLookup = {'mks937aImg':'GCTLR',
                    'mks937aPirg':'GCTLR',
                    'mks937bImg':'GCTLR',
                    'mks937bPirg':'GCTLR',
                    'digitelMpcIonp':'MPC'}
+
+needsDeviceLookup = {'mks937bRelays':'GAUGE',
+                     'mks937bFastRelay':'GAUGE'}
 asynPortDevice = ['mks937a','digitelMpc','mks937b']
 
 # Uses original class name, not the one derived from classNameLookup
@@ -68,6 +71,12 @@ def getName(instance,fileNameNoExt):
     if fileNameNoExt == 'mks937a' or fileNameNoExt == 'mks937b':
         device = instance.strip().split()[0]
         name = f"GCTLR_{device[4]}_{device[-2:]}"
+    if fileNameNoExt == 'mks937bImg':
+        device = instance.strip().split()[0]
+        name = f"IMG_{device[4]}_{device[-2:]}"
+    if fileNameNoExt == 'mks937bPirg':
+        device = instance.strip().split()[0]
+        name = f"PIRG_{device[4]}_{device[-2:]}"
     if fileNameNoExt == 'mks937aGauge' or fileNameNoExt == 'mks937bGauge':
         dom = instance.strip().split()[0]
         id = instance.strip().split()[1]
@@ -91,6 +100,9 @@ def extractPattern(substitutionString,fileNameNoExt):
 
     if fileNameNoExt in needsPortLookup.keys():
         patternSubString = patternSubString.replace('port',needsPortLookup[fileNameNoExt])
+
+    if fileNameNoExt in needsDeviceLookup.keys():
+        patternSubString = patternSubString.replace('device',needsDeviceLookup[fileNameNoExt])
 
     pattern = patternSubString.split()
     if fileNameNoExt in needsNameField:
@@ -201,7 +213,27 @@ for line in lines:
                 closedBracketCounter += 1
 
         if openBracketCounter > 0 and openBracketCounter == closedBracketCounter:
-            fileInstanceDict[templateFileName]=fileInstance
+            
+            if templateFileName not in fileInstanceDict.keys():
+                fileInstanceDict[templateFileName]=fileInstance
+            else:
+                # Add to fileInstanceDict entry that already exists, ie, if a "file" is used multiple times in the substitution
+                fileInstance = fileInstance.split('{')
+                fileInstance.pop(0)
+                fileInstance.pop(0)
+                fileInstance.pop(0)
+
+                # Remove last instance of '}' to allow insertion of more template instances (must be an easier way to do this....)
+                lastBracket = fileInstanceDict[templateFileName].rfind('}')
+                fileInstanceDict[templateFileName]=fileInstanceDict[templateFileName][:lastBracket] + '' + fileInstanceDict[templateFileName][lastBracket+1:]
+
+                for f in fileInstance:
+                    fileInstanceDict[templateFileName] += f'{{{f}'
+
+                # Re-insert '}' at the end
+                fileInstanceDict[templateFileName] += '}'
+                
+
             foundFile = False
             openBracketCounter = 0
             closedBracketCounter = 0
@@ -231,6 +263,11 @@ for fileInstance in fileInstanceDict:
             if patternList[i] == needsPortLookup[fileNameNoExt]:
                 portElementNumber = i
 
+    if fileNameNoExt in needsDeviceLookup:
+        for i, field in enumerate(patternList):
+            if patternList[i] == needsDeviceLookup[fileNameNoExt]:
+                portElementNumber = i
+
     instList = extractInstancesIntoList(template,fileNameNoExt)
 
 
@@ -244,6 +281,16 @@ for fileInstance in fileInstanceDict:
 
         if fileNameNoExt in needsPortLookup.keys():
             instanceValues[portElementNumber] = portLookup[instanceValues[portElementNumber]]
+
+        if fileNameNoExt in needsDeviceLookup.keys():
+            if instance.find(':',0,25)!= -1:
+                basePv = instance.split(':')[0].strip()
+            else:
+                basePv = instance.split()[0].strip()
+            deviceNo = basePv[-2:]
+            typ=basePv[4]
+            deviceType = basePv.split('-')[-2]
+            instanceValues[portElementNumber] = f"{deviceType}_{typ}_{deviceNo}"
 
         if fileNameNoExt in unusedFields.keys():
             for i, field in enumerate(patternList):
