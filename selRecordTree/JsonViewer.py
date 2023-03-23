@@ -18,7 +18,7 @@ class JsonViewer(QtWidgets.QMainWindow):
 
         self.setCentralWidget(json_view)
         self.setWindowTitle("JSON Viewer")
-        self.setFixedSize(400+(jsonLevels*70),700)
+        self.setFixedSize(400+(jsonLevels*80),800)
         self.show()
 
     def keyPressEvent(self, e):

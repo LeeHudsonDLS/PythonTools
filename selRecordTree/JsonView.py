@@ -70,6 +70,7 @@ class JsonView(QtWidgets.QWidget):
         layout2.addWidget(gbox)
 
         self.setLayout(layout2)
+        self.tree_widget.expandAll()
 
     def make_find_ui(self):
 
