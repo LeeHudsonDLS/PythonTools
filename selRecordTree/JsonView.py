@@ -105,7 +105,11 @@ class JsonView(QtWidgets.QWidget):
             item_num = len(self.found_titem_list)
             self.found_idx = (self.found_idx + 1) % item_num
 
-        self.tree_widget.setCurrentItem(self.found_titem_list[self.found_idx])
+        if len(self.found_titem_list) > 0:
+            self.tree_widget.setCurrentItem(self.found_titem_list[self.found_idx])
+        else:
+            self.tree_widget.clearSelection()
+
 
 
     def recurse_jdata(self, jdata, tree_widget):

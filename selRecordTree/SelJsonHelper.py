@@ -1,5 +1,5 @@
 
-from cothread.catools import caget, camonitor, caput
+from cothread.catools import caget, camonitor, caput, caget_array
 import json
 
 class SelJsonHelper:
@@ -33,13 +33,11 @@ class SelJsonHelper:
         inputs = list()
         selInputFields = ["A","B","C","D","E","F","G","H","I","J","K","L"]
 
-        for inp in selInputFields:
-            try:
-                input = self._tryCaget(f'{groupPv}.INP{inp}').split()[0]
-                if input not in inputs:
-                    inputs.append(input)
-            except:
-                pass
+        cagetList = [f'{groupPv}.INP{inp}' for inp in selInputFields]
+        inputs = caget_array(cagetList)
+        inputs = [i for i in inputs if len(i)>1]
+        inputs = [i.split()[0] for i in inputs]
+
 
         return inputs
 
