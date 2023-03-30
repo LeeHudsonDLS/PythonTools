@@ -56,6 +56,7 @@ class SelJsonHelper:
             if 'GIMG' in gauge:
                 structureDict[group].append(self._expandGroup(gauge))
             else:
-                structureDict[group].append(gauge)
+                if gauge not in structureDict[group]:
+                    structureDict[group].append(gauge)
         self.level -= 1
         return structureDict
