@@ -1,0 +1,6 @@
+
+$(VXWORKS_ONLY)sprintf (ARGS, "%d %d %d", 4, 2, IVEC)
+ipacAddHy8002("4,2")test
+ipacAddHy8002("4, 2")
+
+$(VXWORKS_ONLY)MOD40 = DLS8515Configure(40, $(Carrier0), newInterruptVector(), "ty")
