@@ -35,7 +35,11 @@ class rtemsHelper():
                     print("Here")
                 else:
                     print("Here")
-
+            if '$(VXWORKS_ONLY)' in line:
+                self.contents[i]=self.contents[i].replace('$(VXWORKS_ONLY)','')
+            if 'putenv' in line:
+                self.contents[i]=self.contents[i].replace("putenv","epicsEnvSet")
+                self.contents[i]=self.contents[i].replace("=",'","')
             if "sprintf" in line:
                 varName = line.split(',')[0].split('(')[-1]
                 fmat = line.split('"')[1]

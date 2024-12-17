@@ -6,7 +6,13 @@ from subprocess import Popen, PIPE
 original = str(sys.argv[1])
 new = str(sys.argv[2])
 
-cmd = f'grep -lr "{original}" {os.getcwd()}'
+try:
+    ommitExtension = str(sys.argv[3])
+except:
+    ommitExtension = ""
+
+
+cmd = f'grep --exclude={ommitExtension} -lr "{original}" {os.getcwd()}'
 
 files = Popen(cmd,shell=True,stdout=PIPE).stdout.read().decode().split()
 

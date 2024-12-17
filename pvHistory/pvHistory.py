@@ -59,7 +59,7 @@ values.sort()
 # Create a new list only showing when the PV changed
 oldValue = 0.0
 for a in values:
-    currentValue = float(a.split(' ')[-1])
+    currentValue = a.split(' ')[-1]
     if(currentValue!=oldValue):
         changed.append(a)
         oldValue=currentValue

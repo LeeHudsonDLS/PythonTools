@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["/scratch/autosave/FE15I-CS-IOC-01","-d"],
+            "args": ["/dls_sw/work/R3.14.12.7/support/jjc62351/asBackups/SR02C-VA-IOC-01","-d"],
             "console": "integratedTerminal"
         }
     ]

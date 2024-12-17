@@ -40,9 +40,10 @@ unusedFields = {'digitelMpcIonp':['unit'],
                 'dlsPLC_vacValveTclose':['port'],
                 'dlsPLC_vacPump':['valve','fins_timeout'],
                 'dlsPLC_vacValveDebounce':['fins_timeout','tclose_hihi','tclose_hhsv','tclose_hsv','tclose_high'],
-                'ChannelUn':['nelm','card','channel']}
+                'ChannelUn':['nelm','card','channel'],
+                'MASTER':'PORT'}
 
-autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16','Channel8','ChannelUn','psu24vStatus','dlsPLC_CommsStatus','dlsPLC_feFastValve','frontendValveSNL','beamline_access','ValveSequencer','BLFEControl','dlsPLC_vacValveTclose','dlsPLC_digio','dlsPLC_radmonreset','dlsPLC_mpsPermit','valveArchiver']
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16','Channel8','ChannelUn','psu24vStatus','dlsPLC_CommsStatus','dlsPLC_feFastValve','frontendValveSNL','beamline_access','ValveSequencer','BLFEControl','dlsPLC_vacValveTclose','dlsPLC_digio','dlsPLC_radmonreset','dlsPLC_mpsPermit','valveArchiver','mks937aPlogADC']
 
 classNameLookup = {'dlsPLC_read100':'read100',
                    'space':'spaceTemplate',
@@ -57,7 +58,9 @@ classNameLookup = {'dlsPLC_read100':'read100',
                    'insulation_vac_space':'FE24B_insulation_vac_space',
                    'vacuumSpaceOverrides':'FE24B_vacuumSpaceOverrides',
                    'dig':'FE24B_dig',
-                   'customCombGauge':'FE24B_customCombGauge'}
+                   'customCombGauge':'FE24B_customCombGauge',
+                   'gadc':'GenericADCTemplate',
+                   'MASTER':'MasterTemplate'}
 
 
 #{'ty_40_0':'GCTLR_S_01',
@@ -149,7 +152,7 @@ def extractInstancesIntoList(substitutionString,fileNameNoExt):
     return result
 
 def getModuleName(templateName):
-    builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean"],
+    builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean",'mks937aPlogADC'],
                           'mks937b':["mks937b","mks937bGauge","mks937bImg","mks937bPirg","mks937bRelays","mks937bFastRelay","mks937bGaugeGroup","mks937bImgGroup","mks937bPirgGroup","mks937bImgMean"],
                           'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup","digitelMpcqTsp"],
                           'rga':["rga",'rgaGroup'],
@@ -161,8 +164,10 @@ def getModuleName(templateName):
                           'FINS':["FINS"],
                           'TimingTemplates':["defaultEVR"],
                           'SR-VA':["psu24vStatus"],
+                          'ethercat':['gadc','MASTER'],
                           'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup","dlsPLC_CommsStatus","dlsPLC_feFastValve","dlsPLC_feTemperature","dlsPLC_vacValveTclose",'dlsPLC_radmonreset','dlsPLC_digio','dlsPLC_mpsPermit','dlsPLC_vacPump'],
-                          'IOCinfo':["IOCinfo"]}
+                          'IOCinfo':["IOCinfo"],
+                          'vacuumValve':["vacuumValveGroup"]}
 
     for module in builderClassLookup:
         if templateName in builderClassLookup[module]:

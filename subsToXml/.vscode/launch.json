@@ -8,6 +8,9 @@
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
+            "args": [
+                "/dls_sw/work/R3.14.12.7/ioc/SR/VA/SR-VA-IOC-01App/Db/SR-VA-ALL.substitutions"
+            ],
             "program": "${file}",
             "console": "integratedTerminal"
         }

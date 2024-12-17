@@ -16,7 +16,7 @@ def listModulerVersions(iocListFileName,vers):
     else:
         iocs =[args.ioc]
 
-    builderIOCS=['FE10B-CS-IOC-01', 'FE15I-CS-IOC-01']
+    builderIOCS=['FE10B-CS-IOC-01','FE14I-CS-IOC-01','FE24B-CS-IOC-01', 'FE15I-CS-IOC-01','FE16I-CS-IOC-01','FE16B-CS-IOC-01']
     for ioc in iocs:
         # Skip commented out IOC
         if(ioc[0]=='#'):

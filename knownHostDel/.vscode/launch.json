@@ -4,14 +4,15 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "cwd": "/dls_sw/work/R3.14.12.7/ioc/FE24B/FE24B-CS-IOC-01/db",
-            "args": ["-w"],
-            "console": "integratedTerminal"
+            "program": "${workspaceFolder}/stringReplace.py",
+            "args": ["<opi_file>pmac.opi</opi_file>","<opi_file>common/motion/pmac.opi</opi_file>","*.sh"],
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }

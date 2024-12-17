@@ -1,6 +1,361 @@
+epicsEnvSet("Vect0", "240")
+epicsEnvSet("Vect1", "241")
+epicsEnvSet("Vect2", "242")
+epicsEnvSet("Vect3", "243")
+epicsEnvSet("Vect4", "244")
+epicsEnvSet("Vect5", "245")
+epicsEnvSet("Vect6", "246")
+epicsEnvSet("Vect7", "247")
+epicsEnvSet("Vect8", "248")
+epicsEnvSet("Vect9", "249")
+epicsEnvSet("Carrier0","0")
+epicsEnvSet("Carrier1","1")
+epicsEnvSet("Carrier2","2")
+epicsEnvSet("Carrier3","3")
+epicsEnvSet("Carrier4","4")
+epicsEnvSet("Carrier5","5")
+epicsEnvSet("Carrier6","6")
+epicsEnvSet("Carrier7","7")
+epicsEnvSet("Carrier8","8")
+epicsEnvSet("Carrier9","9")
+epicsEnvSet("Carrier10","10")
+#####################
+# Storage Ring Cell 01 Vacuum: vxWorks/EPICS startup file, 
+# This IOC is configured for :
+#       Hytec 8002 card in VME slot 4
+#           Hytec 8515 serial card in slot A for Pirg/IMG and Ion Pump Control
+#           Hytec 8515 serial card in slot B for RGA and Ion Pump Control
+#           Hytec 8515 serial card in slot C for Pirg/IMG, Valve Control and Ion Pump Control
+#       Hytec 8002 card in VME slot 5
+#           Hytec 8401 ADC card in slot A for IMG/PIRG Gauge Controller input 
+#      Hytec 8001 digital input card in VME slot 6
+#           Slot A on the 8301 transition board used for Rack Fan status digital inputs 
+#
+###########################################################
 
-$(VXWORKS_ONLY)sprintf (ARGS, "%d %d %d", 4, 2, IVEC)
-ipacAddHy8002("4,2")test
-ipacAddHy8002("4, 2")
+cd "$(INSTALL)" 
 
-$(VXWORKS_ONLY)MOD40 = DLS8515Configure(40, $(Carrier0), newInterruptVector(), "ty")
+tyBackspaceSet (0x7f)
+shellPromptSet ("SR01C-VA-IOC-01 -> ")
+
+epicsEnvSet ("EPICS_TS_MIN_WEST","0")
+epicsEnvSet ("EPICS_TS_NTP_INET","172.23.194.5")		   
+
+# IP site enumerations
+A = 0
+B = 1
+C = 2
+D = 3
+
+epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES","16000000")
+sysClkRateSet(1000)
+
+ld < bin/$(ARCH)/SR01C-VA-IOC-01.munch
+dbLoadDatabase ("dbd/SR01C-VA-IOC-01.dbd")
+SR01C_VA_IOC_01_registerRecordDeviceDriver (pdbbase)
+dbLoadRecords ("db/SR01C-VA-IOC-01.db")
+
+STREAM_PROTOCOL_DIR = malloc (1000)
+strcpy (STREAM_PROTOCOL_DIR, "$(VALVE)/data")
+strcat (STREAM_PROTOCOL_DIR, ":$(GAUGE)/data")
+strcat (STREAM_PROTOCOL_DIR, ":$(RGA)/data")
+strcat (STREAM_PROTOCOL_DIR, ":$(MPC)/data")
+
+###########################################################
+# Configure a Hytec 8002 carrier VME slot 4 for serial card
+# and another one in slot 5 for the ADC
+#
+#                        vmeslotnum, IPintlevel, HSintnum
+ARGS = malloc (10)
+#$(Vect0) = newInterruptVector ()
+#$(VXWORKS_ONLY)sprintf (4 2 $(Vect0), "%d %d %d", 4, 2, $(Vect0))
+ipacAddHy8002("4,2")
+#$(Vect1) = newInterruptVector ()
+#$(VXWORKS_ONLY)sprintf (5 2 $(Vect1), "%d %d %d", 5, 2, $(Vect1))
+ipacAddHy8002("5,2")
+
+###########################################################
+# Configure a Hytec 8001 in VME slot 6
+#
+#---- 8001 ----
+# dir 0 = in, 1 = out, 2 = 0-31 in + 32-63 out
+# 8301 transition card 64 bit in 4 sets of 16 inputs
+
+#$(Vect2) = newInterruptVector ()
+#$(Vect3) = newInterruptVector ()
+#                              card,   VMEslt,   vect,   lvl,   HSvect,   debounce,   clk,   scan,   dir,   invIN,   invOUT
+Hy8001Configure (60 ,   6     , $(Vect2) ,   2  ,   $(Vect3) ,   1000    ,   0  ,   100 ,   0  ,   1    ,   0)
+
+###########################################################
+# Hytec 8401 ADC in slot A of the VME slot 5 IP carrier card. 
+#
+# Params are : 
+#	cardnum, 
+#	vmeslotnum, 
+#	ipslotnum, 
+#	vectornum,   (0: find a vector)
+#	itrState,    (enable interupts at init) 
+#	aiType,	     (0: differential)
+#	clockSource, (0: internal)
+#	clockRate,   (15: 100000Hz)
+#	inhibit,     (0: disables front panel inhibit ) 
+#	samples,     (1: no averaging -use registers)
+#	spacing,     (spacing between samples to average for ai) 
+#	trigger	     (0: continuous)
+
+#$(Vect4) = newInterruptVector ()
+Hy8401ipConfigure (50, $(Carrier1), 0, $(Vect4), 0, 0, 0, 15, 0, 1, 1, 0)
+
+# FastVacuum 200 Hz, no smoothing, no interrupts
+
+RATE = 7
+SAMPLES = 0
+INTS = 0
+
+Hy8414Configure(52, $(Carrier1), C, newInterruptVector(), INTS, 0, 0, RATE, 0, 1, 1, SAMPLES)
+
+###########################################################
+# Hytec 8515 IPOctal serial module in slots A, B and C of the VME slot 4 IP carrier card. 
+#
+# Params are : 
+#	cardnum, 
+#	vmeslotnum, 
+#	vectornum, 
+#
+#$(Vect5) = DLS8515Configure(40, $(Carrier0), newInterruptVector(), "ty")
+#$(Vect6) = DLS8515Configure(41, $(Carrier0), newInterruptVector(), "ty")
+#$(Vect7) = DLS8515Configure(42, $(Carrier0), newInterruptVector(), "ty")
+
+###########################################################
+# Configure stream device
+#
+drvAsynSerialPortConfigure ("ty_40_0", "/ty/40/0", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_1", "/ty/40/1", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_2", "/ty/40/2", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_3", "/ty/40/3", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_4", "/ty/40/4", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_5", "/ty/40/5", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_6", "/ty/40/6", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_40_7", "/ty/40/7", 0, 0, 0)
+
+drvAsynSerialPortConfigure ("ty_41_0", "/ty/41/0", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_1", "/ty/41/1", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_2", "/ty/41/2", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_3", "/ty/41/3", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_4", "/ty/41/4", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_5", "/ty/41/5", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_6", "/ty/41/6", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_41_7", "/ty/41/7", 0, 0, 0)
+
+drvAsynSerialPortConfigure ("ty_42_0", "/ty/42/0", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_1", "/ty/42/1", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_2", "/ty/42/2", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_3", "/ty/42/3", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_4", "/ty/42/4", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_5", "/ty/42/5", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_6", "/ty/42/6", 0, 0, 0)
+drvAsynSerialPortConfigure ("ty_42_7", "/ty/42/7", 0, 0, 0)
+# Gauge Controllers
+#ty_40_0
+asynSetOption("ty_40_0",0,"baud","9600")
+asynSetOption("ty_40_0",0,"bits","8")
+asynSetOption("ty_40_0",0,"parity","even")
+asynSetOption("ty_40_0",0,"stop","1")
+asynSetOption("ty_40_0",0,"crtscts","N")
+asynSetOption("ty_40_0",0,"clocal","Y")
+
+#ty_40_1
+asynSetOption("ty_40_1",0,"baud","9600")
+asynSetOption("ty_40_1",0,"bits","8")
+asynSetOption("ty_40_1",0,"parity","even")
+asynSetOption("ty_40_1",0,"stop","1")
+asynSetOption("ty_40_1",0,"crtscts","N")
+asynSetOption("ty_40_1",0,"clocal","Y")
+
+# Temporary Gauge controller for Cold Diag project 
+#ty_40_6
+asynSetOption("ty_40_6",0,"baud","9600")
+asynSetOption("ty_40_6",0,"bits","8")
+asynSetOption("ty_40_6",0,"parity","even")
+asynSetOption("ty_40_6",0,"stop","1")
+asynSetOption("ty_40_6",0,"crtscts","N")
+asynSetOption("ty_40_6",0,"clocal","Y")
+
+# Digitel MPCs
+#ty_40_2
+asynSetOption("ty_40_2",0,"baud","9600")
+asynSetOption("ty_40_2",0,"bits","8")
+asynSetOption("ty_40_2",0,"parity","even")
+asynSetOption("ty_40_2",0,"stop","1")
+asynSetOption("ty_40_2",0,"crtscts","N")
+asynSetOption("ty_40_2",0,"clocal","Y")
+
+#ty_40_3
+asynSetOption("ty_40_3",0,"baud","9600")
+asynSetOption("ty_40_3",0,"bits","8")
+asynSetOption("ty_40_3",0,"parity","even")
+asynSetOption("ty_40_3",0,"stop","1")
+asynSetOption("ty_40_3",0,"crtscts","N")
+asynSetOption("ty_40_3",0,"clocal","Y")
+
+#ty_40_4
+asynSetOption("ty_40_4",0,"baud","9600")
+asynSetOption("ty_40_4",0,"bits","8")
+asynSetOption("ty_40_4",0,"parity","even")
+asynSetOption("ty_40_4",0,"stop","1")
+asynSetOption("ty_40_4",0,"crtscts","N")
+asynSetOption("ty_40_4",0,"clocal","Y")
+
+#ty_40_5
+asynSetOption("ty_40_5",0,"baud","9600")
+asynSetOption("ty_40_5",0,"bits","8")
+asynSetOption("ty_40_5",0,"parity","even")
+asynSetOption("ty_40_5",0,"stop","1")
+asynSetOption("ty_40_5",0,"crtscts","N")
+asynSetOption("ty_40_5",0,"clocal","Y")
+
+# Valve Controller
+#ty_41_0
+asynSetOption("ty_41_0",0,"baud","57600")
+asynSetOption("ty_41_0",0,"bits","7")
+asynSetOption("ty_41_0",0,"parity","even")
+asynSetOption("ty_41_0",0,"stop","2")
+asynSetOption("ty_41_0",0,"crtscts","N")
+asynSetOption("ty_41_0",0,"clocal","Y")
+
+# Gauge Controllers
+#ty_41_1
+asynSetOption("ty_41_1",0,"baud","9600")
+asynSetOption("ty_41_1",0,"bits","8")
+asynSetOption("ty_41_1",0,"parity","even")
+asynSetOption("ty_41_1",0,"stop","1")
+asynSetOption("ty_41_1",0,"crtscts","N")
+asynSetOption("ty_41_1",0,"clocal","Y")
+
+#ty_41_2
+asynSetOption("ty_41_2",0,"baud","9600")
+asynSetOption("ty_41_2",0,"bits","8")
+asynSetOption("ty_41_2",0,"parity","even")
+asynSetOption("ty_41_2",0,"stop","1")
+asynSetOption("ty_41_2",0,"crtscts","N")
+asynSetOption("ty_41_2",0,"clocal","Y")
+
+# Digitel MPCs
+#ty_41_3
+asynSetOption("ty_41_3",0,"baud","9600")
+asynSetOption("ty_41_3",0,"bits","8")
+asynSetOption("ty_41_3",0,"parity","even")
+asynSetOption("ty_41_3",0,"stop","1")
+asynSetOption("ty_41_3",0,"crtscts","N")
+asynSetOption("ty_41_3",0,"clocal","Y")
+
+#ty_41_4
+asynSetOption("ty_41_4",0,"baud","9600")
+asynSetOption("ty_41_4",0,"bits","8")
+asynSetOption("ty_41_4",0,"parity","even")
+asynSetOption("ty_41_4",0,"stop","1")
+asynSetOption("ty_41_4",0,"crtscts","N")
+asynSetOption("ty_41_4",0,"clocal","Y")
+
+#ty_41_5
+asynSetOption("ty_41_5",0,"baud","9600")
+asynSetOption("ty_41_5",0,"bits","8")
+asynSetOption("ty_41_5",0,"parity","even")
+asynSetOption("ty_41_5",0,"stop","1")
+asynSetOption("ty_41_5",0,"crtscts","N")
+asynSetOption("ty_41_5",0,"clocal","Y")
+
+#ty_41_6
+asynSetOption("ty_41_6",0,"baud","9600")
+asynSetOption("ty_41_6",0,"bits","8")
+asynSetOption("ty_41_6",0,"parity","even")
+asynSetOption("ty_41_6",0,"stop","1")
+asynSetOption("ty_41_6",0,"crtscts","N")
+asynSetOption("ty_41_6",0,"clocal","Y")
+
+# RGA PC
+#ty_42_0
+asynSetOption("ty_42_0",0,"baud","38400")
+asynSetOption("ty_42_0",0,"bits","8")
+asynSetOption("ty_42_0",0,"parity","N")
+asynSetOption("ty_42_0",0,"stop","1")
+asynSetOption("ty_42_0",0,"crtscts","N")
+asynSetOption("ty_42_0",0,"clocal","Y")
+
+# Digitel MPCs
+#ty_42_1
+asynSetOption("ty_42_1",0,"baud","9600")
+asynSetOption("ty_42_1",0,"bits","8")
+asynSetOption("ty_42_1",0,"parity","even")
+asynSetOption("ty_42_1",0,"stop","1")
+asynSetOption("ty_42_1",0,"crtscts","N")
+asynSetOption("ty_42_1",0,"clocal","Y")
+
+#ty_42_2
+asynSetOption("ty_42_2",0,"baud","9600")
+asynSetOption("ty_42_2",0,"bits","8")
+asynSetOption("ty_42_2",0,"parity","even")
+asynSetOption("ty_42_2",0,"stop","1")
+asynSetOption("ty_42_2",0,"crtscts","N")
+asynSetOption("ty_42_2",0,"clocal","Y")
+
+#ty_42_3
+asynSetOption("ty_42_3",0,"baud","9600")
+asynSetOption("ty_42_3",0,"bits","8")
+asynSetOption("ty_42_3",0,"parity","even")
+asynSetOption("ty_42_3",0,"stop","1")
+asynSetOption("ty_42_3",0,"crtscts","N")
+asynSetOption("ty_42_3",0,"clocal","Y")
+
+HostlinkInterposeInit("ty_41_0")
+finsDEVInit("vlvcc_fins_port1", "ty_41_0")
+
+
+############################################################
+# set up the EVR
+#
+ErConfigurePMC(1, 0)
+ErTimeProviderInit(10)
+installLastResortEventProvider()
+
+# ============= Autosave =====================================
+# mount NFS for name server and bumpless reboot
+hostAdd "cs03r-cs-serv-14", "172.23.194.14"
+nfsAuthUnixSet("cs03r-cs-serv-14", 810, 500, 0, 0)
+save_restoreSet_NFSHost("cs03r-cs-serv-14", "172.23.194.14")
+
+# status-PV prefix, so save_restore can find its status PV's.
+save_restoreSet_status_prefix("SR01C-VA-IOC-01:SR")
+
+# ok to restore a save set that had missing values (no CA connection to PV)?
+# ok to save a file if some CA connections are bad?
+save_restoreSet_IncompleteSetsOk(1)
+
+# In the restore operation, a copy of the save file will be written.  The
+# file name can look like "auto_settings.sav.bu", and be overwritten every
+# reboot, or it can look like "auto_settings.sav_020306-083522" (this is what
+# is meant by a dated backup file) and every reboot will write a new copy.
+save_restoreSet_DatedBackupFiles(1)
+
+# specify where save files should go
+# Development network - for testing:
+#set_savefile_path("/home/iocs/autosave/SR01C-VA-IOC-01")
+# Primary network for final installation
+set_savefile_path("/exports/home/ops-iocs/prod/autosave/SR01C-VA-IOC-01")
+set_requestfile_path("$(INSTALL)/data")
+
+set_pass0_restoreFile("SR01C_0.sav")
+
+# ==================================================
+
+iocInit
+
+create_monitor_set("SR01C_0.req",5)
+
+###########################################################
+
+
+
+
+
+

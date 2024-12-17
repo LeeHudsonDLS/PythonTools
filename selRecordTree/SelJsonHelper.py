@@ -31,6 +31,7 @@ class SelJsonHelper:
 
     def _getAllGaugePVsInGroup(self,groupPv):
         inputs = list()
+        result = [""] * 8
         selInputFields = ["A","B","C","D","E","F","G","H","I","J","K","L"]
 
         cagetList = [f'{groupPv}.INP{inp}' for inp in selInputFields]
@@ -38,8 +39,14 @@ class SelJsonHelper:
         inputs = [i for i in inputs if len(i)>1]
         inputs = [i.split()[0] for i in inputs]
 
+        # Remove duplicated but retain order
+        for index,input in enumerate(inputs):
+            if input not in result:
+                result[index] = input
+            else:
+                result[index] = ""
 
-        return inputs
+        return result
 
 
     def _expandGroup(self,group):
@@ -56,7 +63,6 @@ class SelJsonHelper:
             if 'GIMG' in gauge:
                 structureDict[group].append(self._expandGroup(gauge))
             else:
-                if gauge not in structureDict[group]:
-                    structureDict[group].append(gauge)
+                structureDict[group].append(gauge)
         self.level -= 1
         return structureDict

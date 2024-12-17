@@ -16,7 +16,7 @@ output = ""
 feArea = args.valve.split('-')[0].replace("FE",'')
 
 if args.all:
-    valvePVs = [f"{dom}-RS-ABSB-01",f"{dom}-VA-VALVE-01",f"{dom}-VA-VALVE-02",f"{dom}-VA-FVALV-01",f"{dom}-PS-SHTR-01",f"{dom}-PS-SHTR-02",f"{dom}-MP-PERMT-01"]
+    valvePVs = [f"{dom}-RS-ABSB-01",f"{dom}-RS-ABSB-02",f"{dom}-VA-VALVE-01",f"{dom}-VA-VALVE-02",f"{dom}-VA-FVALV-01",f"{dom}-PS-SHTR-01",f"{dom}-PS-SHTR-02",f"{dom}-MP-PERMT-01"]
 else:
     valvePVs=args.valve
 
@@ -24,6 +24,7 @@ for device in valvePVs:
     valve = dict()
 
     builderClasses={"FE.absorber_1_sub":"ABSB-01",
+                    "FE.absorber_2_sub":"ABSB-02",
                     "FE.valve_1_sub":"VALVE-01",
                     "FE.valve_2_sub":"VALVE-02",
                     "FE.fvalv_1_sub":"FVALV-01",
