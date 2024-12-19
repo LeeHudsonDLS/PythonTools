@@ -301,6 +301,11 @@ for fileInstance in fileInstanceDict:
             if patternList[i] == needsPortLookup[fileNameNoExt]:
                 portElementNumber = i
 
+    if fileNameNoExt in fieldNameLookup.keys():
+        for i, field in enumerate(patternList):
+            if field in fieldNameLookup[fileNameNoExt].keys():
+                patternList[i] = fieldNameLookup[fileNameNoExt][field]
+
     if fileNameNoExt in needsDeviceLookup:
         for i, field in enumerate(patternList):
             if patternList[i] == needsDeviceLookup[fileNameNoExt]:
@@ -311,7 +316,8 @@ for fileInstance in fileInstanceDict:
 
 
     for instance in instList:
-        xmlString = f"<{getModuleName(fileNameNoExt)}.{getClassName(fileNameNoExt)} "
+        className = getClassName(fileNameNoExt)
+        xmlString = f"<{getModuleName(fileNameNoExt)}.{className} "
         instanceValues = instance.split()
 
         if fileNameNoExt in asynPortDevice:
