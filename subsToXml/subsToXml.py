@@ -41,10 +41,26 @@ unusedFields = {'digitelMpcIonp':['unit'],
                 'dlsPLC_vacPump':['valve','fins_timeout'],
                 'dlsPLC_vacValveDebounce':['fins_timeout','tclose_hihi','tclose_hhsv','tclose_hsv','tclose_high'],
                 'ChannelUn':['nelm','card','channel'],
-                'MASTER':'PORT'}
+                'MASTER':'PORT',
+                'basic_motor':['RDBL','UREV'],
+                'digitelMpcIonp':['spon','spoff','unit']}
 
-autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16','Channel8','ChannelUn','psu24vStatus','dlsPLC_CommsStatus','dlsPLC_feFastValve','frontendValveSNL','beamline_access','ValveSequencer','BLFEControl','dlsPLC_vacValveTclose','dlsPLC_digio','dlsPLC_radmonreset','dlsPLC_mpsPermit','valveArchiver','mks937aPlogADC']
+autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16',
+                 'Channel8','ChannelUn','psu24vStatus','dlsPLC_CommsStatus',
+                 'dlsPLC_feFastValve','frontendValveSNL','beamline_access',
+                 'ValveSequencer','XBPMLookup','XBPMStats','pbpm_common',
+                 'beam_geometry','BLFEControl','BLFEControl','dlsPLC_vacValveTclose',
+                 'dlsPLC_digio','dlsPLC_radmonreset','motor_gui','dlsPLC_mpsPermit',
+                 'valveArchiver','ValveSequencer','frontendValveSNL','dlsPLC_fvg',
+                 'mks937aPlogADC', 'basic_motor', 'MotorSequencer','valveArchiver',
+                 'record_alias','pbpm','beamline_access'
+                 ]
 
+fieldNameLookup = {'evr_alive':{'SYSTEM':'device'}}
+
+
+
+# template name as it appears in subs : builder class name
 classNameLookup = {'dlsPLC_read100':'read100',
                    'space':'spaceTemplate',
                    'space_b':'space_bTemplate',
@@ -57,10 +73,15 @@ classNameLookup = {'dlsPLC_read100':'read100',
                    'dlsPLC_feFastValve':'feFastValve',
                    'insulation_vac_space':'FE24B_insulation_vac_space',
                    'vacuumSpaceOverrides':'FE24B_vacuumSpaceOverrides',
-                   'dig':'FE24B_dig',
+                   'dig':'FE07I_dig',
+                   'pbpm-common':'auto_pbpm_common',
+                   'generalTime':'generalTimeTemplate',
                    'customCombGauge':'FE24B_customCombGauge',
                    'gadc':'GenericADCTemplate',
-                   'MASTER':'MasterTemplate'}
+                   'MASTER':'MasterTemplate',
+                   'pt100':'idPT100Template',
+                   'enzLoCuM4':'enzLoCuM4',
+                   'Hy8403ip':'Hy8403ipTemplate'}
 
 
 #{'ty_40_0':'GCTLR_S_01',
@@ -99,7 +120,7 @@ def extractPattern(substitutionString,fileNameNoExt):
     patternSubString  = substitutionString[patStart:patEnd]
 
     for token in removeFromPattern:
-        patternSubString = patternSubString.replace(token,'')
+        patternSubString = patternSubString.replace(token,' ')
 
     if fileNameNoExt in needsPortLookup.keys():
         patternSubString = patternSubString.replace('port',needsPortLookup[fileNameNoExt])
@@ -152,6 +173,8 @@ def extractInstancesIntoList(substitutionString,fileNameNoExt):
     return result
 
 def getModuleName(templateName):
+
+    # Support module : template name as it appears in substitution file
     builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean",'mks937aPlogADC'],
                           'mks937b':["mks937b","mks937bGauge","mks937bImg","mks937bPirg","mks937bRelays","mks937bFastRelay","mks937bGaugeGroup","mks937bImgGroup","mks937bPirgGroup","mks937bImgMean"],
                           'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup","digitelMpcqTsp"],
@@ -162,11 +185,17 @@ def getModuleName(templateName):
                           'FE':["frontendValveSNL","beamline_access","ValveSequencer","BLFEControl","flowmeter","valveArchiver","insulation_vac_space","vacuumSpaceOverrides","customCombGauge","dig"],
                           'FastVacuum':["Master16","Channel16","Channel8","ChannelUn"],
                           'FINS':["FINS"],
-                          'TimingTemplates':["defaultEVR"],
+                          'PT100':['pt100'],
+                          'TimingTemplates':["defaultEVR",'generalTime','evr_alive'],
                           'SR-VA':["psu24vStatus"],
                           'ethercat':['gadc','MASTER'],
+                          'Hy8403ip':['Hy8403ip'],
                           'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup","dlsPLC_CommsStatus","dlsPLC_feFastValve","dlsPLC_feTemperature","dlsPLC_vacValveTclose",'dlsPLC_radmonreset','dlsPLC_digio','dlsPLC_mpsPermit','dlsPLC_vacPump'],
                           'IOCinfo':["IOCinfo"],
+                          'motor':['basic_motor'],
+                          'FE':['MotorSequencer','FE24B_dig','dig','valveArchiver','dlsPLC_fvg','frontendValveSNL','ValveSequencer','motor_gui','XBPMLookup','XBPMStats','pbpm-common','beam_geometry','BLFEControl','record_alias','pbpm','beamline_access'],
+                          'enzLoCuM4':['enzLoCuM4'],
+                          'DLS8512Templates':['DLS8512core','DLS8512chan'],
                           'vacuumValve':["vacuumValveGroup"]}
 
     for module in builderClassLookup:
@@ -186,6 +215,17 @@ def getClassName(fileNameNoExt):
         return classNameLookup[fileNameNoExt]
     
     return fileNameNoExt
+
+
+def getPortElementNumber(instanceValues):
+    for i, instance in enumerate(instanceValues):
+        if 'ty_' in instance:
+            return i
+        if 'ts' in instance:
+            return i
+    return -1
+
+
 
 fileInstanceDict = dict()
 
@@ -245,13 +285,6 @@ for line in lines:
             fileInstance = ""
 
 
-def getPortElementNumber(instanceValues):
-    for i, instance in enumerate(instanceValues):
-        if 'ty_' in instance:
-            return i
-        if 'ts' in instance:
-            return i
-    return -1
 
 
 for fileInstance in fileInstanceDict:
