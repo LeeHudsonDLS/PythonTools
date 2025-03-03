@@ -48,12 +48,13 @@ unusedFields = {'digitelMpcIonp':['unit'],
 autoClassList = ['Hy8401ip','rgaGroup','mks937aImgMean','Channel16',
                  'Channel8','ChannelUn','psu24vStatus','dlsPLC_CommsStatus',
                  'dlsPLC_feFastValve','frontendValveSNL','beamline_access',
-                 'ValveSequencer','XBPMLookup','XBPMStats','pbpm_common',
+                 'ValveSequencer','XBPMStats','pbpm_common',
                  'beam_geometry','BLFEControl','BLFEControl','dlsPLC_vacValveTclose',
                  'dlsPLC_digio','dlsPLC_radmonreset','motor_gui','dlsPLC_mpsPermit',
                  'valveArchiver','ValveSequencer','frontendValveSNL','dlsPLC_fvg',
                  'mks937aPlogADC', 'basic_motor', 'MotorSequencer','valveArchiver',
-                 'record_alias','pbpm','beamline_access', 'asynRec'
+                 'record_alias','beamline_access', 'asynRec','XBPMLookup','pbpm','archiver',
+                 'pmacStatus8Axes','spill','h2o_flow'
                  ]
 
 fieldNameLookup = {'evr_alive':{'SYSTEM':'device'},'DLS8512chan':{'name':'suffix'}}
@@ -73,7 +74,7 @@ classNameLookup = {'dlsPLC_read100':'read100',
                    'dlsPLC_feFastValve':'feFastValve',
                    'insulation_vac_space':'FE24B_insulation_vac_space',
                    'vacuumSpaceOverrides':'FE24B_vacuumSpaceOverrides',
-                   'dig':'FE07I_dig',
+                   'dig':'FE13I_dig',
                    'pbpm-common':'auto_pbpm_common',
                    'generalTime':'generalTimeTemplate',
                    'customCombGauge':'FE24B_customCombGauge',
@@ -83,7 +84,11 @@ classNameLookup = {'dlsPLC_read100':'read100',
                    'enzLoCuM4':'enzLoCuM4',
                    'Hy8403ip':'Hy8403ipTemplate',
                    'VHS40x-chans':'VHS40xChans',
-                   'my_evr':'auto_my_evr_FE07I'}
+                   'my_evr':'auto_my_evr_FE07I',
+                   'BLGui-device':'auto_BLGui_device',
+                   'BLGui-status':'auto_BLGui_status',
+                   'generic-scan':'generic_scan',
+                   'generic-2d-scan':'generic_2d_scan'}
 
 
 #{'ty_40_0':'GCTLR_S_01',
@@ -178,7 +183,7 @@ def getModuleName(templateName):
 
     # Support module : template name as it appears in substitution file
     builderClassLookup = {'mks937a':["mks937a","mks937aGauge","mks937aImg","mks937aPirg","mks937aGaugeGroup","mks937aImgGroup","mks937aPirgGroup","mks937aImgMean",'mks937aPlogADC'],
-                          'mks937b':["mks937b","mks937bGauge","mks937bImg","mks937bPirg","mks937bRelays","mks937bFastRelay","mks937bGaugeGroup","mks937bImgGroup","mks937bPirgGroup","mks937bImgMean"],
+                          'mks937b':["mks937b","mks937bGauge","mks937bImg","mks937bPirg","mks937bRelays","mks937bFastRelay","mks937bGaugeGroup","mks937bImgGroup","mks937bPirgGroup","mks937bImgMean","mks937bHy8401"],
                           'digitelMpc':["digitelMpc","digitelMpcIonp","digitelMpcTsp","digitelMpcIonpGroup","digitelMpcTspGroup","digitelMpcqTsp"],
                           'rga':["rga",'rgaGroup'],
                           'vacuumSpace':["space","space_b"],
@@ -193,12 +198,16 @@ def getModuleName(templateName):
                           'Hy8403ip':['Hy8403ip'],
                           'dlsPLC':["dlsPLC_read100","dlsPLC_vacValveDebounce","dlsPLC_vacValveGroup","dlsPLC_CommsStatus","dlsPLC_feFastValve","dlsPLC_feTemperature","dlsPLC_vacValveTclose",'dlsPLC_radmonreset','dlsPLC_digio','dlsPLC_mpsPermit','dlsPLC_vacPump'],
                           'IOCinfo':["IOCinfo"],
-                          'motor':['basic_motor'],
-                          'FE':['motor_gui', 'MotorSequencer', 'FE24B_dig', 'asynRec', 'pbpm', 'valveArchiver', 'record_alias', 'XBPMStats', 'customCombGauge', 'vacuumSpaceOverrides', 'insulation_vac_space', 'BLFEControl', 'pbpm-common', 'beamline_access', 'flowmeter', 'dlsPLC_fvg', 'XBPMLookup', 'frontendValveSNL', 'beam_geometry', 'dig', 'ValveSequencer','my_evr'],
+                          'motor':['basic_motor','motorUtil'],
+                          'FE':['h2o_flow','spill','archiver', 'motor_gui', 'MotorSequencer', 'FE24B_dig', 'asynRec', 'pbpm', 'valveArchiver', 'record_alias', 'XBPMStats', 'customCombGauge', 'vacuumSpaceOverrides', 'insulation_vac_space', 'BLFEControl', 'pbpm-common', 'beamline_access', 'flowmeter', 'dlsPLC_fvg', 'XBPMLookup', 'frontendValveSNL', 'beam_geometry', 'dig', 'ValveSequencer','my_evr'],
                           'enzLoCuM4':['enzLoCuM4'],
                           'DLS8512Templates':['DLS8512core','DLS8512chan'],
                           'vacuumValve':["vacuumValveGroup"],
-                          'iseg-VHS40x':['VHS40x','VHS40x-chans']}
+                          'iseg-VHS40x':['VHS40x','VHS40x-chans'],
+                          'pmacUtil':['dls_pmac_asyn_motor_no_coord','autohome','pmacStatus8Axes'],
+                          'slit':['slitBlade'],
+                          'BLGui':['BLGui-device','BLGui-status'],
+                          'generic':['generic-scan','generic-2d-scan']}
 
     for module in builderClassLookup:
         if templateName in builderClassLookup[module]:
