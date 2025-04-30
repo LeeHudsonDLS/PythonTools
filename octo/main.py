@@ -2,24 +2,45 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import time
 
-# Rates (in pounds)
-OFF_PEAK_RATE = 0.085     # £/kWh
-ON_PEAK_RATE = 0.2879     # £/kWh
+# ====== SETTINGS ======
+START_DATE = '2025-03-28'
+END_DATE = '2025-04-27'
+
+OFF_PEAK_RATE = 0.085    # £/kWh
+ON_PEAK_RATE = 0.2879    # £/kWh
 DAILY_STANDING_CHARGE = 0.4394  # £/day
+# =======================
 
-# Load CSV
-df = pd.read_csv('consumption.csv', skipinitialspace=True, parse_dates=['Start', 'End'])
+# Load CSV with possible BOM and clean whitespace
+df = pd.read_csv('consumption.csv', skipinitialspace=True)
 
-# Define off-peak window
+# Debug date parsing
+print("Start column dtype before conversion:", df['Start'].dtype)
+
+# Force parse Start and End columns as UTC datetime
+df['Start'] = pd.to_datetime(df['Start'], errors='coerce', utc=True)
+df['End'] = pd.to_datetime(df['End'], errors='coerce', utc=True)
+
+print("Start column dtype after conversion:", df['Start'].dtype)
+
+# Drop rows with invalid datetimes
+df = df.dropna(subset=['Start', 'End'])
+
+# Filter by date range
+start_ts = pd.to_datetime(START_DATE, utc=True)
+end_ts = pd.to_datetime(END_DATE, utc=True) + pd.Timedelta(days=1)
+df = df[(df['Start'] >= start_ts) & (df['Start'] < end_ts)]
+
+# Define off-peak hours
 offpeak_start = time(0, 30)
 offpeak_end = time(5, 30)
 
 def is_offpeak(start_dt, end_dt):
-    start_t = start_dt.time()
-    end_t = end_dt.time()
-    return offpeak_start <= start_t < offpeak_end and offpeak_start < end_t <= offpeak_end
+    t1 = start_dt.time()
+    t2 = end_dt.time()
+    return offpeak_start <= t1 < offpeak_end and offpeak_start < t2 <= offpeak_end
 
-# Group consumption into off-peak or on-peak
+# Group usage
 daily_usage = {}
 
 for _, row in df.iterrows():
@@ -33,58 +54,62 @@ for _, row in df.iterrows():
     else:
         daily_usage[day]['on_peak'] += kwh
 
-# Display results and calculate costs
-energy_cost_total = 0.0
+# Print summary and collect data for plotting
 dates = []
 off_peaks = []
 on_peaks = []
 daily_costs = []
+energy_cost_total = 0.0
 
-print("Daily Usage and Energy Cost (excluding standing charge):")
+print("\nDaily Usage and Cost (excluding standing charge):")
+print("--------------------------------------------------")
+
 for day, usage in sorted(daily_usage.items()):
     off_kwh = usage['off_peak']
     on_kwh = usage['on_peak']
     off_cost = off_kwh * OFF_PEAK_RATE
     on_cost = on_kwh * ON_PEAK_RATE
-    daily_total = off_cost + on_cost
-    energy_cost_total += daily_total
+    daily_cost = off_cost + on_cost
 
+    energy_cost_total += daily_cost
     dates.append(str(day))
     off_peaks.append(off_kwh)
     on_peaks.append(on_kwh)
-    daily_costs.append(daily_total)
+    daily_costs.append(daily_cost)
 
     print(f"{day}: Off-peak = {off_kwh:.3f} kWh (£{off_cost:.2f}), "
           f"On-peak = {on_kwh:.3f} kWh (£{on_cost:.2f}), "
-          f"Energy Cost = £{daily_total:.2f}")
+          f"Energy Cost = £{daily_cost:.2f}")
 
-# Final totals
+# Totals
 num_days = len(daily_usage)
 standing_charge_total = num_days * DAILY_STANDING_CHARGE
 total_cost = energy_cost_total + standing_charge_total
 
-print(f"\nTotal energy cost (excluding standing charge): £{energy_cost_total:.2f}")
+print("\n--------------------------------------------------")
+print(f"Total energy cost (no standing charge): £{energy_cost_total:.2f}")
 print(f"Standing charge total ({num_days} days at £{DAILY_STANDING_CHARGE:.4f}/day): £{standing_charge_total:.2f}")
-print(f"Total cost including standing charges: £{total_cost:.2f}")
+print(f"➡️  Total cost including standing charge: £{total_cost:.2f}")
 
-# ----- Plot -----
-fig, ax1 = plt.subplots(figsize=(10, 6))
+# Plot usage and cost
+if dates:
+    fig, ax1 = plt.subplots(figsize=(10, 6))
 
-# Bar chart for energy use
-ax1.bar(dates, off_peaks, label='Off-peak kWh', color='royalblue')
-ax1.bar(dates, on_peaks, bottom=off_peaks, label='On-peak kWh', color='darkorange')
-ax1.set_ylabel('Energy Used (kWh)')
-ax1.set_xlabel('Date')
-ax1.legend(loc='upper left')
-ax1.set_title('Daily Energy Use and Cost Breakdown')
+    ax1.bar(dates, off_peaks, label='Off-peak kWh', color='royalblue')
+    ax1.bar(dates, on_peaks, bottom=off_peaks, label='On-peak kWh', color='darkorange')
+    ax1.set_ylabel('Energy Used (kWh)')
+    ax1.set_xlabel('Date')
+    ax1.legend(loc='upper left')
+    ax1.set_title(f'Energy Use and Cost Breakdown ({START_DATE} to {END_DATE})')
 
-# Line chart for daily cost (right y-axis)
-ax2 = ax1.twinx()
-ax2.plot(dates, daily_costs, label='Daily Cost (£)', color='green', marker='o', linewidth=2)
-ax2.set_ylabel('Daily Cost (£)')
-ax2.legend(loc='upper right')
+    ax2 = ax1.twinx()
+    ax2.plot(dates, daily_costs, label='Daily Cost (£)', color='green', marker='o', linewidth=2)
+    ax2.set_ylabel('Daily Cost (£)')
+    ax2.legend(loc='upper right')
 
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+else:
+    print("No data available in the selected date range.")
 
