@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 from datetime import time
 
 # Rates (in pounds)
@@ -34,6 +35,11 @@ for _, row in df.iterrows():
 
 # Display results and calculate costs
 energy_cost_total = 0.0
+dates = []
+off_peaks = []
+on_peaks = []
+daily_costs = []
+
 print("Daily Usage and Energy Cost (excluding standing charge):")
 for day, usage in sorted(daily_usage.items()):
     off_kwh = usage['off_peak']
@@ -42,6 +48,11 @@ for day, usage in sorted(daily_usage.items()):
     on_cost = on_kwh * ON_PEAK_RATE
     daily_total = off_cost + on_cost
     energy_cost_total += daily_total
+
+    dates.append(str(day))
+    off_peaks.append(off_kwh)
+    on_peaks.append(on_kwh)
+    daily_costs.append(daily_total)
 
     print(f"{day}: Off-peak = {off_kwh:.3f} kWh (£{off_cost:.2f}), "
           f"On-peak = {on_kwh:.3f} kWh (£{on_cost:.2f}), "
@@ -55,4 +66,25 @@ total_cost = energy_cost_total + standing_charge_total
 print(f"\nTotal energy cost (excluding standing charge): £{energy_cost_total:.2f}")
 print(f"Standing charge total ({num_days} days at £{DAILY_STANDING_CHARGE:.4f}/day): £{standing_charge_total:.2f}")
 print(f"Total cost including standing charges: £{total_cost:.2f}")
+
+# ----- Plot -----
+fig, ax1 = plt.subplots(figsize=(10, 6))
+
+# Bar chart for energy use
+ax1.bar(dates, off_peaks, label='Off-peak kWh', color='royalblue')
+ax1.bar(dates, on_peaks, bottom=off_peaks, label='On-peak kWh', color='darkorange')
+ax1.set_ylabel('Energy Used (kWh)')
+ax1.set_xlabel('Date')
+ax1.legend(loc='upper left')
+ax1.set_title('Daily Energy Use and Cost Breakdown')
+
+# Line chart for daily cost (right y-axis)
+ax2 = ax1.twinx()
+ax2.plot(dates, daily_costs, label='Daily Cost (£)', color='green', marker='o', linewidth=2)
+ax2.set_ylabel('Daily Cost (£)')
+ax2.legend(loc='upper right')
+
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
 
