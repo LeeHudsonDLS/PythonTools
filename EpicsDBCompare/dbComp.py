@@ -1,6 +1,20 @@
 import sys
 import os
+import re
 
+def sortRecordString(recordString):
+
+    header_match = re.match(r'(record\([^)]+\)\s*{)', recordString)
+    footer_match = re.search(r'(\s*})\s*$', recordString)
+    fields = re.findall(r'\s*field\(([^,]+),\s*("[^"]*")\)', recordString)
+
+    sorted_fields = sorted(fields, key=lambda x: x[0])
+    formatted_fields = ['    field({0}, {1})'.format(name, value) for name, value in sorted_fields]
+
+    header = header_match.group(1) if header_match else ''
+    footer = footer_match.group(1) if footer_match else ''
+    
+    return header + '\n' + '\n'.join(formatted_fields) + '\n' + footer
 
   
 inRecord = False
@@ -53,10 +67,10 @@ for x in localFiles:
         else:
             databaseFiles.append(x)
 
-print databaseFiles
+print(databaseFiles)
 
 for index, arg in enumerate(databaseFiles):
-    print "Processing " + databaseFiles[index]
+    print("Processing " + databaseFiles[index])
     f = open(databaseFiles[index], "r")
     recordString = ""
     inRecord = False
@@ -69,7 +83,7 @@ for index, arg in enumerate(databaseFiles):
                 recordFirstLine = recordString.split('\n')[0]
                 if '{' in recordFirstLine:
                     recordString=recordString.replace("{","\n{")
-                recordlist.append(recordString)
+                recordlist.append(sortRecordString(recordString))
                 recordString = ""
                 inRecord = False 
         if "record(" in x and "#" not in x:
@@ -104,11 +118,11 @@ if len(sys.argv) > 1:
             for item in recordlist:
                 f.write("%s" % item)
 
-print "Total number of records: " + str(noOfRecords) + "\n"
-print "Number of record instances:"
-print metaDataString
+print("Total number of records: " + str(noOfRecords) + "\n")
+print("Number of record instances:")
+print(metaDataString)
 
 if len(sys.argv) > 1:
     if sys.argv[1] in ["-w","-W"]:
-        print "Database written to result.txt\n"
+        print("Database written to result.txt\n")
 
