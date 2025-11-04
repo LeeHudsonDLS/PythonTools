@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Motion Stage</title>
+<style>
+  body { margin: 0; font-family: Arial, sans-serif; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<svg id="motionStage" width="600" height="120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Grey bar -->
+  <rect id="scaleBar" x="50" y="50" width="500" height="10" fill="#ccc" />
+
+  <!-- Limit / Home / Zero markers -->
+  <line id="negTick" stroke="red" stroke-width="2"/>
+  <line id="posTick" stroke="blue" stroke-width="2"/>
+  <line id="homeTick" stroke="green" stroke-width="3"/>
+  <line id="zeroTick" stroke="orange" stroke-width="3"/>
+
+  <!-- Labels -->
+  <text id="negLabel" font-size="12" fill="red" text-anchor="middle"></text>
+  <text id="posLabel" font-size="12" fill="blue" text-anchor="middle"></text>
+  <text id="homeLabel" font-size="12" fill="green" text-anchor="middle"></text>
+  <text id="zeroLabel" font-size="12" fill="orange" text-anchor="middle"></text>
+
+  <!-- Tick marks container -->
+  <g id="ticksGroup"></g>
+</svg>
+
+<script>
+  // Parameters
+  const plim = 10;
+  const nlim = 0;
+  const home = 0;
+  const off = -5;
+
+  const svg = document.getElementById('motionStage');
+  const marginX = 50;
+  const barWidth = 500;
+  const barY = 50;
+  const barHeight = 10;
+  const pixelsPerMM = barWidth / (plim - nlim);
+  const xFrom = v => marginX + (v - nlim) * pixelsPerMM;
+
+  const xNeg = xFrom(nlim);
+  const xPos = xFrom(plim);
+  const xHome = xFrom(home);
+  const xZero = xFrom(home - off);
+
+  // Limits extend below
+  const lowerY1 = barY + barHeight;
+  const lowerY2 = barY + barHeight*2;
+  document.getElementById('negTick').setAttribute('x1', xNeg);
+  document.getElementById('negTick').setAttribute('x2', xNeg);
+  document.getElementById('negTick').setAttribute('y1', lowerY1);
+  document.getElementById('negTick').setAttribute('y2', lowerY2);
+  document.getElementById('posTick').setAttribute('x1', xPos);
+  document.getElementById('posTick').setAttribute('x2', xPos);
+  document.getElementById('posTick').setAttribute('y1', lowerY1);
+  document.getElementById('posTick').setAttribute('y2', lowerY2);
+
+  // Home/Zero extend above
+  const upperY1 = barY - barHeight;
+  const upperY2 = barY;
+  document.getElementById('homeTick').setAttribute('x1', xHome);
+  document.getElementById('homeTick').setAttribute('x2', xHome);
+  document.getElementById('homeTick').setAttribute('y1', upperY1);
+  document.getElementById('homeTick').setAttribute('y2', upperY2);
+  document.getElementById('zeroTick').setAttribute('x1', xZero);
+  document.getElementById('zeroTick').setAttribute('x2', xZero);
+  document.getElementById('zeroTick').setAttribute('y1', upperY1);
+  document.getElementById('zeroTick').setAttribute('y2', upperY2);
+
+  // Labels
+  document.getElementById('negLabel').setAttribute('x', xNeg);
+  document.getElementById('negLabel').setAttribute('y', lowerY2 + 10);
+  document.getElementById('negLabel').textContent = `nlim=${nlim}`;
+  document.getElementById('posLabel').setAttribute('x', xPos);
+  document.getElementById('posLabel').setAttribute('y', lowerY2 + 10);
+  document.getElementById('posLabel').textContent = `plim=${plim}`;
+  document.getElementById('homeLabel').setAttribute('x', xHome);
+  document.getElementById('homeLabel').setAttribute('y', upperY1 - 2);
+  document.getElementById('homeLabel').textContent = `home=${home}`;
+  document.getElementById('zeroLabel').setAttribute('x', xZero);
+  document.getElementById('zeroLabel').setAttribute('y', upperY1 - 2);
+  document.getElementById('zeroLabel').textContent = `zero=${home - off}`;
+
+  // Tick marks every 1mm
+  const ticksGroup = document.getElementById('ticksGroup');
+  for (let v = nlim; v <= plim; v += 1) {
+    const x = xFrom(v);
+    const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    tick.setAttribute("x1", x);
+    tick.setAttribute("x2", x);
+    tick.setAttribute("y1", barY);
+    tick.setAttribute("y2", barY + barHeight);
+    tick.setAttribute("stroke", "black");
+    tick.setAttribute("stroke-width", "1");
+    ticksGroup.appendChild(tick);
+  }
+</script>
+
+</body>
+</html>
