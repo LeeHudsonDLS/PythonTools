@@ -126,7 +126,7 @@ class App(tk.Tk):
         except FileNotFoundError:
             pass
 
-        # Sort by directory mtime (oldest → newest)
+        # Sort all releases by directory mtime (oldest → newest)
         releases.sort(
             key=lambda r: os.path.getmtime(os.path.join(FIRMWARE_BASE, r))
         )
@@ -134,13 +134,26 @@ class App(tk.Tk):
         self.release_combo["values"] = releases
         self.script_combo["values"] = releases
 
-        if releases:
-            latest = releases[-1]
-            self.release.set(latest)
-            self.script_release.set(latest)
-        else:
+        if not releases:
             self.release.set("")
             self.script_release.set("")
+            return
+
+        # Only allow defaults matching X.Y.Z
+        version_re = re.compile(r"^\d+\.\d+\.\d+$")
+        versioned = [r for r in releases if version_re.match(r)]
+
+        if versioned:
+            latest = max(
+                versioned,
+                key=lambda r: os.path.getmtime(os.path.join(FIRMWARE_BASE, r))
+            )
+        else:
+            # Fallback: newest by time if no valid version dirs exist
+            latest = releases[-1]
+
+        self.release.set(latest)
+        self.script_release.set(latest)
 
     def resolve_script(self):
         rel = self.script_release.get()
