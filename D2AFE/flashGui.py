@@ -170,26 +170,46 @@ class App(tk.Tk):
         raise FileNotFoundError("d2afe-cli.py not found")
 
     def resolve_binary(self):
-        if self.binary_path.get().strip():
-            return self.binary_path.get().strip()
+        # Explicit override always wins
+        override = self.binary_path.get().strip()
+        if override:
+            if not (os.path.isfile(override) and override.lower().endswith(".bin")):
+                raise RuntimeError("Binary override is not a valid .bin file")
+            return override
 
         base = os.path.join(FIRMWARE_BASE, self.release.get(), TARGET)
-        subdir = os.path.join(base, SUBDIR_MAP[self.device.get()])
-        bins = glob.glob(os.path.join(subdir, "*.bin"))
+        preferred = os.path.join(base, SUBDIR_MAP[self.device.get()])
 
-        if len(bins) != 1:
-            raise RuntimeError("Unable to uniquely resolve binary")
+        search_dirs = []
+        if os.path.isdir(preferred):
+            # New layout
+            search_dirs.append(preferred)
+        else:
+            # Legacy layout
+            search_dirs.append(base)
+
+        bins = []
+        for d in search_dirs:
+            bins.extend(glob.glob(os.path.join(d, "*.bin")))
+
+        if len(bins) == 0:
+            raise RuntimeError("No .bin file found")
+        if len(bins) > 1:
+            raise RuntimeError(f"Multiple .bin files found: {bins}")
+
         return bins[0]
+
 
     # ---------- Execution ----------
 
     def browse_binary(self):
         f = filedialog.askopenfilename(
             title="Select firmware binary",
+            initialdir=FIRMWARE_BASE,
             filetypes=[("Binary files", "*.bin")]
         )
         if f:
-            self.binary_path.set(f)
+            self.binary_path.set
 
     def run(self):
         try:
